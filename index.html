@@ -4,520 +4,1560 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Financeiro Família</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config={theme:{extend:{colors:{marrom:{50:'#fdfbf7',100:'#f4ede2',200:'#d7ccc8',300:'#bcaaa4',400:'#a1887f',500:'#8d6e63',600:'#795548',700:'#6d4c41',800:'#5d4037',900:'#3e2723'}}}}}
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marrom: {
+                            50: '#fdfbf7',
+                            100: '#f4ede2',
+                            600: '#795548',
+                            700: '#6d4c41',
+                            800: '#5d4037',
+                            900: '#3e2723'
+                        }
+                    }
+                }
+            }
+        }
     </script>
+    <!-- SheetJS (XLSX) e jsPDF para exportação -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- PWA Manifest & Meta -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#5d4037">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('Service Worker registrado:', reg.scope))
+                    .catch((err) => console.log('Falha Service Worker:', err));
+            });
+        }
+    </script>
     <style>
-        body{font-family:'Inter',system-ui,sans-serif}
-        .font-title{font-family:'Playfair Display',Georgia,serif}
-        @keyframes wave{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-        .vintage-wave-bg{background:linear-gradient(135deg,#fdfbf7 0%,#d7ccc8 25%,#8d6e63 50%,#5d4037 75%,#f4ede2 100%);background-size:300% 300%;animation:wave 12s ease infinite}
-        @media (prefers-reduced-motion:reduce){.vintage-wave-bg{animation:none}}
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-title { font-family: 'Playfair Display', serif; }
+
+        @keyframes waveAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .vintage-wave-bg {
+            background: linear-gradient(135deg, #fdfbf7 0%, #d7ccc8 25%, #8d6e63 50%, #5d4037 75%, #f4ede2 100%);
+            background-size: 300% 300%;
+            animation: waveAnimation 12s ease infinite;
+        }
     </style>
 </head>
 <body class="bg-marrom-50 text-marrom-900 h-screen flex flex-col overflow-hidden">
 
-<!-- LOGIN -->
+<!-- TELA INICIAL (LANDING / SELEÇÃO DE USUÁRIO) COM ONDAS VINTAGE MARROM E BRANCO -->
 <div id="loginScreen" class="fixed inset-0 vintage-wave-bg z-50 flex flex-col items-center justify-between p-6">
     <div class="flex-1 flex flex-col items-center justify-center w-full max-w-md text-center">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-marrom-800 text-white rounded-full text-3xl font-bold mb-4 shadow-2xl border-2 border-white/40">SF</div>
-        <h1 class="text-4xl md:text-5xl font-bold text-marrom-900 mb-3 tracking-tight">Sistema Financeiro Família</h1>
-        <p class="text-sm text-marrom-800 mb-8 font-medium">Organização inteligente e aconchegante para as finanças da sua casa</p>
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-marrom-800 text-white rounded-full text-3xl font-bold mb-4 shadow-2xl border-2 border-white/40 transform hover:scale-105 transition duration-300">
+            SF
+        </div>
+        <h1 class="text-4xl md:text-5xl font-sans font-bold text-marrom-900 mb-3 tracking-tight drop-shadow-sm">
+            Sistema Financeiro Família
+        </h1>
+        <p class="text-sm text-marrom-800 opacity-90 mb-8 font-medium">
+            Organização inteligente e aconchegante para as finanças da sua casa
+        </p>
+
+        <!-- Lista de Usuários Individuais -->
         <div class="w-full space-y-3">
-            <h3 class="text-sm font-bold text-marrom-800 mb-3">Selecione seu usuário</h3>
-            <div id="userSelectList" class="space-y-3 max-h-52 overflow-y-auto pr-1"></div>
-            <button onclick="openM('createUserModal')" class="w-full bg-marrom-800/80 hover:bg-marrom-900 text-white font-medium py-3 px-4 rounded-2xl transition text-sm border border-white/30 shadow-md">+ Adicionar novo usuário</button>
+            <h3 class="text-xs uppercase tracking-widest font-bold text-marrom-800 mb-3">Selecione seu Usuário</h3>
+            <div id="userSelectList" class="space-y-3 max-h-52 overflow-y-auto pr-1">
+                <!-- Preenchido via JS -->
+            </div>
+
+            <div class="pt-2">
+                <button onclick="showCreateUserModal()" class="w-full bg-marrom-800/80 hover:bg-marrom-900 text-white font-medium py-3 px-4 rounded-2xl transition duration-200 text-sm flex items-center justify-center gap-2 border border-white/30 shadow-md backdrop-blur-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Adicionar Novo Usuário
+                </button>
+            </div>
         </div>
     </div>
-    <footer class="text-center text-sm font-semibold text-marrom-900 py-4">Financeira Família Bem-Bem • Todos os direitos reservados</footer>
+
+    <!-- Rodapé / Direitos Reservados -->
+    <footer class="text-center text-sm font-semibold text-marrom-900 tracking-wider py-4 drop-shadow-sm">
+        Financeira Família Bem-Bem • Todos os direitos reservados
+    </footer>
+</div>
+
+<!-- MODAL CRIAR USUÁRIO -->
+<div id="createUserModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 border border-marrom-100">
+        <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Cadastrar Novo Usuário</h3>
+        <form id="formCreateUser" onsubmit="handleCreateUser(event)">
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Nome do Usuário</label>
+                <input type="text" id="newUserName" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-marrom-600 text-sm">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeCreateUserModal()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
+                <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Cadastrar</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- CABEÇALHO -->
-<header class="bg-marrom-800 text-white px-4 md:px-6 py-3 flex items-center justify-between shadow-md z-20">
+<header class="bg-marrom-800 text-white px-6 py-3 flex items-center justify-between shadow-md z-20">
     <div class="flex items-center gap-3">
-        <button onclick="toggleSidebar()" class="p-1.5 rounded-lg hover:bg-marrom-700 transition" title="Recolher/ampliar menu" aria-label="Menu">
+        <button onclick="toggleSidebar()" class="p-1.5 rounded-lg hover:bg-marrom-700 transition" title="Recolher/Ampliar Menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-        <span class="font-semibold text-sm md:text-base">Sistema seguro • Financeiro</span>
+        <span class="font-semibold tracking-wide text-sm md:text-base">Sistema seguro • Financeiro</span>
     </div>
-    <div class="flex items-center gap-3">
-        <span id="currentDateHeader" class="hidden md:inline text-sm text-marrom-100"></span>
-        <div class="relative" id="notifWrap">
-            <button onclick="toggleNotifications()" class="p-2 rounded-full hover:bg-marrom-700 transition relative" aria-label="Notificações">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                <span id="notifBadge" class="absolute top-1 right-1 bg-amber-600 text-white text-[10px] w-4 h-4 rounded-full items-center justify-center font-bold hidden">0</span>
+    <div class="flex items-center gap-4">
+        <span id="currentDateHeader" class="text-xs md:text-sm text-marrom-100 opacity-90"></span>
+        <div class="relative">
+            <button onclick="toggleNotifications()" class="p-2 rounded-full hover:bg-marrom-700 transition relative">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                <span id="notifBadge" class="absolute top-1 right-1 bg-amber-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold hidden">0</span>
             </button>
-            <div id="notifDropdown" class="absolute right-0 mt-2 w-72 md:w-80 bg-white rounded-xl shadow-xl border border-marrom-100 text-marrom-900 hidden z-50 p-3">
-                <h4 class="text-sm font-bold text-marrom-600 mb-2">Notificações e alertas</h4>
-                <div id="notifList" class="space-y-2 max-h-60 overflow-y-auto text-xs"></div>
+            <!-- Dropdown Notificações -->
+            <div id="notifDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-marrom-100 text-marrom-900 hidden z-50 p-3">
+                <h4 class="text-xs font-bold uppercase text-marrom-600 mb-2">Notificações e Alertas</h4>
+                <div id="notifList" class="space-y-2 max-h-60 overflow-y-auto text-xs">
+                    <p class="text-marrom-500 text-center py-4">Nenhuma notificação nova.</p>
+                </div>
             </div>
         </div>
-        <button onclick="logout()" class="text-xs bg-marrom-700 hover:bg-marrom-900 px-3 py-1.5 rounded-lg transition font-medium">Trocar usuário</button>
+        <button onclick="logout()" class="text-xs bg-marrom-700 hover:bg-marrom-900 px-3 py-1.5 rounded-lg transition font-medium">Trocar Usuário</button>
     </div>
 </header>
 
+<!-- CORPO PRINCIPAL -->
 <div class="flex flex-1 overflow-hidden">
-    <aside id="sidebar" class="bg-marrom-800 text-marrom-100 w-64 transition-all duration-300 flex flex-col justify-between shadow-inner flex-shrink-0 overflow-y-auto">
-        <div class="p-3 space-y-4">
+
+    <!-- MENU LATERAL -->
+    <aside id="sidebar" class="bg-marrom-800 text-marrom-100 w-64 transition-all duration-300 flex flex-col justify-between shadow-inner">
+        <div class="p-4 space-y-4">
+            <!-- Perfil sem foto -->
             <div class="flex items-center gap-3 p-2 bg-marrom-700 rounded-xl">
-                <div class="w-10 h-10 rounded-full bg-marrom-600 flex items-center justify-center font-bold text-white text-lg shadow flex-shrink-0"><span id="userInitial">U</span></div>
+                <div class="w-10 h-10 rounded-full bg-marrom-600 flex items-center justify-center font-bold text-white text-lg shadow">
+                    <span id="userInitial">U</span>
+                </div>
                 <div class="overflow-hidden sidebar-text">
                     <h4 id="userNameDisplay" class="font-bold text-sm text-white truncate">Usuário</h4>
-                    <span class="text-[11px] text-emerald-300">● Online</span>
+                    <span class="text-[11px] text-emerald-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Online</span>
                 </div>
             </div>
-            <nav id="nav" class="space-y-1"></nav>
+
+            <!-- Navegação -->
+            <nav class="space-y-1">
+                <button onclick="switchTab('renda')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-white bg-marrom-700" data-tab="renda">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="sidebar-text">Renda</span>
+                </button>
+                <button onclick="switchTab('entradas')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="entradas">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    <span class="sidebar-text">Entradas</span>
+                </button>
+                <button onclick="switchTab('dividas')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="dividas">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    <span class="sidebar-text">Dívidas fixas</span>
+                </button>
+                <button onclick="switchTab('gastos')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="gastos">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span class="sidebar-text">Gastos</span>
+                </button>
+                <button onclick="switchTab('cartoes')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="cartoes">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <span class="sidebar-text">Cartões</span>
+                </button>
+                <button onclick="switchTab('auditoria')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="auditoria">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span class="sidebar-text">Auditoria</span>
+                </button>
+                <button onclick="openCreateUserModal()" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                    <span class="sidebar-text">Adicionar usuário</span>
+                </button>
+                <button onclick="switchTab('apagarUsuario')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="apagarUsuario">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"/></svg>
+                    <span class="sidebar-text">Apagar usuário</span>
+                </button>
+            </nav>
         </div>
-        <div class="p-4 border-t border-marrom-700 text-xs text-marrom-300 sidebar-text text-center">v2.7 PWA ativo</div>
+        <div class="p-4 border-t border-marrom-700 text-xs text-marrom-300 sidebar-text text-center">
+            v2.6 PWA Ativo
+        </div>
     </aside>
 
-    <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-marrom-50">
-        <div class="mb-4">
-            <button onclick="goBack()" class="inline-flex items-center gap-2 bg-white hover:bg-marrom-100 text-marrom-800 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm border border-marrom-200 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>Voltar
+    <!-- CONTEÚDO PRINCIPAL COM BOTÃO DE VOLTAR (SETINHA) -->
+    <main class="flex-1 overflow-y-auto p-6 bg-marrom-50 flex flex-col">
+
+        <!-- BARRA DE NAVEGAÇÃO SUPERIOR INTERNA (SETINHA DE VOLTAR) -->
+        <div class="mb-4 flex items-center justify-between">
+            <button onclick="goBackToHome()" class="inline-flex items-center gap-2 bg-white hover:bg-marrom-100 text-marrom-800 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm border border-marrom-200 transition" title="Voltar">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Voltar
             </button>
         </div>
-        <div id="tabs"></div>
+
+        <!-- ABA RENDA -->
+        <div id="tab-renda" class="tab-content space-y-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-marrom-900 font-title">Renda Mensal</h1>
+                <div class="flex gap-2 relative">
+                    <!-- Dropdown Excel -->
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('excelDropdown')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
+                        <div id="excelDropdown" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportExcel('renda'); toggleDropdown('excelDropdown')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdown')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <!-- Dropdown PDF -->
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('pdfDropdown')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
+                        <div id="pdfDropdown" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportPDF('renda'); toggleDropdown('pdfDropdown')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdown')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase text-marrom-600">Salário</span>
+                    <div class="flex items-center gap-3 mt-1">
+                        <span id="salarioDisplay" class="text-3xl font-extrabold text-marrom-900">R$ 0,00</span>
+                        <button onclick="toggleEditSalario()" class="text-xs bg-marrom-100 text-marrom-800 px-2.5 py-1 rounded-lg hover:bg-marrom-600 hover:text-white transition font-medium">Editar</button>
+                    </div>
+                    <div id="salarioEditBox" class="hidden mt-3 flex items-center gap-2">
+                        <input type="number" step="0.01" id="inputSalario" class="px-3 py-1.5 border border-marrom-200 rounded-lg text-sm w-40" placeholder="Novo valor">
+                        <button onclick="saveSalario()" class="bg-marrom-800 text-white text-xs px-3 py-2 rounded-lg hover:bg-marrom-900">Salvar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100">
+                <h2 class="text-lg font-bold text-marrom-900 mb-4 font-title">Seu resumo orçamentário</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100">
+                        <span class="text-xs font-semibold text-marrom-600 uppercase">Total de Entradas</span>
+                        <p id="resumoEntradas" class="text-xl font-bold text-emerald-700 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100">
+                        <span class="text-xs font-semibold text-marrom-600 uppercase">Total de Dívidas Fixas</span>
+                        <p id="resumoDividas" class="text-xl font-bold text-rose-700 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100">
+                        <span class="text-xs font-semibold text-marrom-600 uppercase">Total de Gastos</span>
+                        <p id="resumoGastos" class="text-xl font-bold text-amber-700 mt-1">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA ENTRADAS -->
+        <div id="tab-entradas" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-marrom-900 font-title">Entradas de Dinheiro</h1>
+                <div class="flex items-center gap-2">
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('excelDropdownEnt')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
+                        <div id="excelDropdownEnt" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportExcel('entradas'); toggleDropdown('excelDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('pdfDropdownEnt')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
+                        <div id="pdfDropdownEnt" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportPDF('entradas'); toggleDropdown('pdfDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <button onclick="openModalEntrada()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Nova Entrada
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-hidden">
+                <table id="tableEntradas" class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold">
+                        <th class="p-4">Descrição</th>
+                        <th class="p-4">Forma</th>
+                        <th class="p-4">Valor</th>
+                        <th class="p-4">Data</th>
+                        <th class="p-4 text-right no-export">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabelaEntradasBody" class="divide-y divide-marrom-100">
+                    <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA DÍVIDAS FIXAS -->
+        <div id="tab-dividas" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-marrom-900 font-title">Dívidas Fixas</h1>
+                <div class="flex items-center gap-2">
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('excelDropdownDiv')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
+                        <div id="excelDropdownDiv" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportExcel('dividas'); toggleDropdown('excelDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('pdfDropdownDiv')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
+                        <div id="pdfDropdownDiv" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportPDF('dividas'); toggleDropdown('pdfDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <button onclick="openModalDivida()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Adicionar Dívida
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-hidden">
+                <table id="tableDividas" class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold">
+                        <th class="p-4">Título</th>
+                        <th class="p-4">Valor</th>
+                        <th class="p-4">Término previsto</th>
+                        <th class="p-4 text-right no-export">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabelaDividasBody" class="divide-y divide-marrom-100">
+                    <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA GASTOS -->
+        <div id="tab-gastos" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-marrom-900 font-title">Gastos</h1>
+                <div class="flex items-center gap-2">
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('excelDropdownGas')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
+                        <div id="excelDropdownGas" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportExcel('gastos'); toggleDropdown('excelDropdownGas')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownGas')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('pdfDropdownGas')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
+                        <div id="pdfDropdownGas" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportPDF('gastos'); toggleDropdown('pdfDropdownGas')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownGas')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <button onclick="openModalGasto()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Registrar Gastos
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-hidden">
+                <table id="tableGastos" class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold">
+                        <th class="p-4">Descrição</th>
+                        <th class="p-4">Categoria</th>
+                        <th class="p-4">Forma</th>
+                        <th class="p-4">Valor</th>
+                        <th class="p-4">Data</th>
+                        <th class="p-4 text-right no-export">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabelaGastosBody" class="divide-y divide-marrom-100">
+                    <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA CARTÕES -->
+        <div id="tab-cartoes" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-marrom-900 font-title">Cartões</h1>
+                <div class="flex items-center gap-2">
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('excelDropdownCar')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
+                        <div id="excelDropdownCar" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportExcel('cartoes'); toggleDropdown('excelDropdownCar')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownCar')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown('pdfDropdownCar')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
+                        <div id="pdfDropdownCar" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                            <button onclick="exportPDF('cartoes'); toggleDropdown('pdfDropdownCar')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownCar')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                        </div>
+                    </div>
+                    <button onclick="openModalCartao()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Adicionar Cartão
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="cartoesGrid">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+
+        <!-- ABA AUDITORIA -->
+        <div id="tab-auditoria" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-marrom-900 font-title">Auditoria do Sistema</h1>
+                <div class="flex gap-2">
+                    <button onclick="exportExcel('auditoria')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel</button>
+                    <button onclick="exportPDF('auditoria')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF</button>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-hidden">
+                <table id="tableAuditoria" class="w-full text-left border-collapse text-sm">
+                    <thead>
+                    <tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold">
+                        <th class="p-4">Data</th>
+                        <th class="p-4">Hora</th>
+                        <th class="p-4">Usuário</th>
+                        <th class="p-4">Ação Realizada</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabelaAuditoriaBody" class="divide-y divide-marrom-100 text-xs">
+                    <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA APAGAR USUÁRIO -->
+        <div id="tab-apagarUsuario" class="tab-content space-y-6 hidden">
+            <h1 class="text-2xl font-bold text-marrom-900 font-title">Apagar Usuário</h1>
+            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 p-6 max-w-xl">
+                <p class="text-sm text-marrom-600 mb-4">Selecione o usuário que deseja remover do sistema:</p>
+                <div id="deleteUserList" class="space-y-3">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+        </div>
+
     </main>
 </div>
 
-<div id="modals"></div>
+<!-- MODAIS DE CADASTRO -->
 
+<!-- Modal Nova Entrada -->
+<div id="modalEntrada" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Nova Entrada de Dinheiro</h3>
+        <form onsubmit="saveEntrada(event)">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Descrição</label>
+                    <input type="text" id="entDesc" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento / Recebimento</label>
+                    <select id="entForma" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                        <option value="Pix">Pix</option>
+                        <option value="Dinheiro Físico">Dinheiro Físico</option>
+                        <option value="Transferência">Transferência</option>
+                        <option value="Boleto Bancário">Boleto Bancário</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor</label>
+                    <input type="number" step="0.01" id="entValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data</label>
+                    <input type="date" id="entData" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button type="button" onclick="closeModalEntrada()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
+                <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Adicionar Dívida -->
+<div id="modalDivida" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Adicionar Dívida Fixa</h3>
+        <form onsubmit="saveDivida(event)">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Título da Dívida</label>
+                    <input type="text" id="divTitulo" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo</label>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="setDivTipo('Produto')" id="btnTipoProduto" class="flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white">Produto</button>
+                        <button type="button" onclick="setDivTipo('Serviço')" id="btnTipoServico" class="flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800">Serviço</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento</label>
+                    <select id="divForma" onchange="handleDivFormaChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                        <option value="Pix">Pix</option>
+                        <option value="Dinheiro Físico">Dinheiro Físico</option>
+                        <option value="Transferência">Transferência</option>
+                        <option value="Boleto Bancário">Boleto Bancário</option>
+                        <option value="Cartão">Cartão</option>
+                    </select>
+                </div>
+
+                <div id="divCartaoContainer" class="hidden space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Selecione o Cartão</label>
+                        <select id="divCartaoSelect" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo de Cartão</label>
+                        <select id="divTipoCartao" onchange="handleCartaoTipoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                            <option value="Crédito">Crédito</option>
+                            <option value="Débito">Débito</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="divParceladoContainer">
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Parcelado?</label>
+                    <select id="divParcelado" onchange="handleParceladoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                        <option value="Não">Não</option>
+                        <option value="Sim">Sim</option>
+                    </select>
+                </div>
+
+                <div id="divQtdParcelasContainer" class="hidden">
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Número de Vezes (Parcelas)</label>
+                    <input type="number" id="divQtdVezes" min="1" value="1" oninput="calcDividaTermino()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label id="lblValorDivida" class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor</label>
+                    <input type="number" step="0.01" id="divValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data em que começou</label>
+                    <input type="date" id="divData" onchange="calcDividaTermino()" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+
+                <div id="divTerminoPreview" class="text-xs text-marrom-600 font-medium bg-marrom-50 p-2 rounded-lg hidden"></div>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <button type="button" onclick="closeModalDivida()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
+                <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Registrar Gasto -->
+<div id="modalGasto" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Registrar Gasto</h3>
+        <form onsubmit="saveGasto(event)">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Descrição</label>
+                    <input type="text" id="gastoDesc" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Categoria</label>
+                    <select id="gastoCat" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento</label>
+                    <select id="gastoForma" onchange="handleGastoFormaChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                        <option value="Pix">Pix</option>
+                        <option value="Dinheiro Físico">Dinheiro Físico</option>
+                        <option value="Transferência">Transferência</option>
+                        <option value="Boleto Bancário">Boleto Bancário</option>
+                        <option value="Cartão">Cartão</option>
+                    </select>
+                </div>
+
+                <div id="gastoCartaoContainer" class="hidden space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Selecione o Cartão</label>
+                        <select id="gastoCartaoSelect" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo de Cartão</label>
+                        <select id="gastoTipoCartao" onchange="handleGastoCartaoTipoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                            <option value="Crédito">Crédito</option>
+                            <option value="Débito">Débito</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="gastoParceladoContainer">
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Parcelado?</label>
+                    <select id="gastoParcelado" onchange="handleGastoParceladoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                        <option value="Não">Não</option>
+                        <option value="Sim">Sim</option>
+                    </select>
+                </div>
+
+                <div id="gastoQtdVezesContainer" class="hidden">
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Número de Vezes</label>
+                    <input type="number" id="gastoQtdVezes" min="1" value="1" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+
+                <div>
+                    <label id="lblValorGasto" class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor Total à Vista</label>
+                    <input type="number" step="0.01" id="gastoValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data</label>
+                    <input type="date" id="gastoData" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button type="button" onclick="closeModalGasto()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
+                <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Adicionar Cartão -->
+<div id="modalCartao" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Adicionar Cartão</h3>
+        <form onsubmit="saveCartao(event)">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Nome do Cartão</label>
+                    <input type="text" id="cartaoNome" required placeholder="Ex: Nubank Platinum" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Banco</label>
+                    <input type="text" id="cartaoBanco" required placeholder="Ex: Nubank" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo</label>
+                    <select id="cartaoTipo" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                        <option value="Crédito e Débito">Crédito e Débito</option>
+                        <option value="Apenas Crédito">Apenas Crédito</option>
+                        <option value="Apenas Débito">Apenas Débito</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Final (4 dígitos)</label>
+                    <input type="text" id="cartaoFinal" maxlength="4" required placeholder="1234" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Limite (R$)</label>
+                    <input type="number" step="0.01" id="cartaoLimite" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button type="button" onclick="closeModalCartao()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
+                <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SCRIPT DE GERENCIAMENTO DO SISTEMA -->
 <script>
-    /* ============ DADOS ============ */
-    const KEY='sistema_financeiro_db';
-    const BLANK={usuarios:[],currentUser:null,salarios:{},entradas:{},dividas:{},gastos:{},cartoes:{},auditoria:[]};
-    let db;
-    try{db={...BLANK,...(JSON.parse(localStorage.getItem(KEY))||{})}}catch(e){db={...BLANK}}
-    db.currentUser=null;
-    let currentTab='renda',previousTab='renda',divTipo='Produto';
-
-    const $=id=>document.getElementById(id);
-    const U=()=>db.currentUser;
-    const list=k=>(db[k][U()]||[]);
-    const saveData=()=>{try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('Não foi possível salvar os dados neste navegador.')}};
-    const fmt=v=>(Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-    const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const uid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-    const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const today=()=>iso(new Date());
-    const fdate=s=>s?s.split('-').reverse().join('/'):'—';
-    function addMonths(s,n){const[y,m,d]=s.split('-').map(Number);const dt=new Date(y,m-1+n,1);const last=new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate();dt.setDate(Math.min(d,last));return iso(dt)}
-    const isActive=d=>!d.termino||d.termino>=today();
-
-    function logAuditoria(acao){
-        const n=new Date();
-        db.auditoria.push({data:n.toLocaleDateString('pt-BR'),hora:n.toLocaleTimeString('pt-BR'),usuario:U()||'—',acao});
-        if(db.auditoria.length>500)db.auditoria=db.auditoria.slice(-500);
-        saveData();
-    }
-
-    /* ============ UI ESTÁTICA GERADA ============ */
-    const IN='w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-marrom-600';
-    const LB='block text-xs font-semibold text-marrom-700 mb-1';
-    const BTN='bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition';
-    const fld=(l,h)=>`<div><label class="${LB}">${l}</label>${h}</div>`;
-    const inp=(id,type='text',x='')=>`<input id="${id}" type="${type}" ${x} class="${IN}">`;
-    const sel=(id,opts,x='')=>`<select id="${id}" ${x} class="${IN}">${opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
-    const FORMAS=['Pix','Dinheiro Físico','Transferência','Boleto Bancário','Cartão'];
-
-    const NAV=[['renda','💰','Renda'],['entradas','📈','Entradas'],['dividas','📋','Dívidas fixas'],['gastos','🛒','Gastos'],['cartoes','💳','Cartões'],['auditoria','🧾','Auditoria'],['addUser','➕','Adicionar usuário'],['apagarUsuario','🗑️','Apagar usuário']];
-    const TABS={
-        entradas:['Entradas de Dinheiro','Nova Entrada','modalEntrada'],
-        dividas:['Dívidas Fixas','Adicionar Dívida','modalDivida'],
-        gastos:['Gastos','Registrar Gasto','modalGasto'],
-        cartoes:['Cartões','Adicionar Cartão','modalCartao'],
-        auditoria:['Auditoria do Sistema']
+    let db = JSON.parse(localStorage.getItem('sistema_financeiro_db')) || {
+        usuarios: [],
+        currentUser: null,
+        salarios: {},
+        entradas: {},
+        dividas: {},
+        gastos: {},
+        cartoes: {},
+        auditoria: []
     };
 
-    function modal(id,title,body,sub){
-        return `<div id="${id}" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto border border-marrom-100">
-  <h3 class="text-lg font-bold mb-4 font-title">${title}</h3>
-  <form onsubmit="${sub}(event)"><div class="space-y-4">${body}</div>
-  <div class="flex justify-end gap-2 mt-6"><button type="button" onclick="closeM('${id}')" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
-  <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button></div></form></div></div>`;
+    let currentDivTipo = 'Produto';
+    let currentTab = 'renda';
+    let previousTab = 'renda';
+
+    function saveData() {
+        localStorage.setItem('sistema_financeiro_db', JSON.stringify(db));
     }
-    const payFields=p=>`
-${fld('Forma de pagamento',sel(p+'Forma',FORMAS,`onchange="formUpd('${p}')"`))}
-<div id="${p}CartaoBox" class="hidden space-y-3">
-  ${fld('Cartão',`<select id="${p}Cartao" onchange="formUpd('${p}')" class="${IN}"></select>`)}
-  ${fld('Tipo de cartão',sel(p+'TipoCartao',['Crédito','Débito'],`onchange="formUpd('${p}')"`))}
-</div>
-<div id="${p}ParcBox">${fld('Parcelado?',sel(p+'Parc',['Não','Sim'],`onchange="formUpd('${p}')"`))}</div>
-<div id="${p}QtdBox" class="hidden">${fld('Número de vezes (parcelas)',inp(p+'Qtd','number',`min="1" value="1" oninput="formUpd('${p}')"`))}</div>
-<div><label id="${p}Lbl" class="${LB}">Valor</label>${inp(p+'Valor','number',`step="0.01" min="0.01" required oninput="formUpd('${p}')"`)}</div>
-${fld(p==='div'?'Data em que começou':'Data',inp(p+'Data','date',`required onchange="formUpd('${p}')"`))}
-<div id="${p}Preview" class="hidden text-xs text-marrom-700 font-medium bg-marrom-50 p-2 rounded-lg"></div>`;
 
-    function buildUI(){
-        $('nav').innerHTML=NAV.map(([id,ic,t])=>`<button onclick="${id==='addUser'?"openM('createUserModal')":`switchTab('${id}')`}" ${id!=='addUser'?`data-tab="${id}"`:''} class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200"><span class="w-5 text-center flex-shrink-0">${ic}</span><span class="sidebar-text">${t}</span></button>`).join('');
-
-        let h=`<div id="tab-renda" class="tab-content space-y-6">
-  <div class="flex flex-col md:flex-row justify-between md:items-center gap-4"><h1 class="text-2xl font-bold font-title">Renda mensal</h1>
-  <div class="flex flex-wrap gap-2"><button onclick="exportExcel('geral')" class="bg-emerald-800 hover:bg-emerald-900 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow">📊 Relatório geral Excel</button>
-  <button onclick="exportPDF('geral')" class="bg-rose-800 hover:bg-rose-900 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow">📄 Relatório geral PDF</button></div></div>
-  <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100">
-    <span class="text-sm font-semibold text-marrom-600">Salário</span>
-    <div class="flex items-center gap-3 mt-1"><span id="salarioDisplay" class="text-3xl font-extrabold">R$ 0,00</span>
-    <button onclick="toggleEditSalario()" class="text-xs bg-marrom-100 text-marrom-800 px-2.5 py-1 rounded-lg hover:bg-marrom-600 hover:text-white transition font-medium">Editar</button></div>
-    <div id="salarioEditBox" class="hidden mt-3 items-center gap-2"><input type="number" step="0.01" min="0" id="inputSalario" class="px-3 py-1.5 border border-marrom-200 rounded-lg text-sm w-40" placeholder="Novo valor">
-    <button onclick="saveSalario()" class="bg-marrom-800 text-white text-xs px-3 py-2 rounded-lg hover:bg-marrom-900">Salvar</button></div>
-  </div>
-  <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100"><h2 class="text-lg font-bold mb-4 font-title">Seu resumo orçamentário</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-    ${[['Total de entradas','resumoEntradas','text-emerald-700'],['Dívidas fixas (por mês)','resumoDividas','text-rose-700'],['Total de gastos','resumoGastos','text-amber-700'],['Saldo estimado','resumoSaldo','text-marrom-900']].map(([l,i,c])=>`<div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100"><span class="text-xs font-semibold text-marrom-600">${l}</span><p id="${i}" class="text-xl font-bold ${c} mt-1">R$ 0,00</p></div>`).join('')}
-  </div><p class="text-xs text-marrom-500 mt-3">Saldo estimado = salário + entradas − gastos − dívidas fixas do mês.</p></div></div>`;
-
-        for(const k in TABS){
-            const[t,addL,addM]=TABS[k];
-            h+=`<div id="tab-${k}" class="tab-content space-y-6 hidden"><div class="flex flex-wrap justify-between items-center gap-2"><h1 class="text-2xl font-bold font-title">${t}</h1><div class="flex flex-wrap gap-2">
-    <button onclick="exportExcel('${k}')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">Exportar Excel</button>
-    <button onclick="exportPDF('${k}')" class="bg-rose-700 hover:bg-rose-800 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">Exportar PDF</button>
-    ${addM?`<button onclick="openM('${addM}')" class="${BTN}">+ ${addL}</button>`:''}</div></div><div id="body-${k}"></div></div>`;
+    window.onload = function() {
+        document.getElementById('currentDateHeader').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        renderLoginScreen();
+        if ('Notification' in window && Notification.permission !== 'granted') {
+            Notification.requestPermission();
         }
-        h+=`<div id="tab-apagarUsuario" class="tab-content space-y-6 hidden"><h1 class="text-2xl font-bold font-title">Apagar usuário</h1>
-  <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 p-6 max-w-xl"><p class="text-sm text-marrom-600 mb-4">Selecione o usuário que deseja remover. Todos os dados dele serão apagados.</p><div id="deleteUserList" class="space-y-3"></div></div></div>`;
-        $('tabs').innerHTML=h;
+    };
 
-        $('modals').innerHTML=
-            modal('createUserModal','Cadastrar novo usuário',fld('Nome do usuário',inp('newUserName','text','required maxlength="40"')),'handleCreateUser')+
-            modal('modalEntrada','Nova entrada de dinheiro',fld('Descrição',inp('entDesc','text','required'))+fld('Forma de recebimento',sel('entForma',FORMAS.slice(0,4)))+fld('Valor (R$)',inp('entValor','number','step="0.01" min="0.01" required'))+fld('Data',inp('entData','date','required')),'saveEntrada')+
-            modal('modalDivida','Adicionar dívida fixa',fld('Título da dívida',inp('divTitulo','text','required'))+
-                `<div><label class="${LB}">Tipo</label><div class="flex gap-2"><button type="button" onclick="setDivTipo('Produto')" id="btnTipoProduto" class="flex-1 py-2 text-xs font-bold rounded-lg border">Produto</button><button type="button" onclick="setDivTipo('Serviço')" id="btnTipoServico" class="flex-1 py-2 text-xs font-bold rounded-lg border">Serviço</button></div></div>`+payFields('div'),'saveDivida')+
-            modal('modalGasto','Registrar gasto',fld('Descrição',inp('gastoDesc','text','required'))+fld('Categoria',sel('gastoCat',['Alimentação','Saúde','Lazer','Transporte','Outros']))+payFields('gasto'),'saveGasto')+
-            modal('modalCartao','Adicionar cartão',fld('Nome do cartão',inp('cartaoNome','text','required placeholder="Ex: Nubank Platinum"'))+fld('Banco',inp('cartaoBanco','text','required placeholder="Ex: Nubank"'))+fld('Tipo',sel('cartaoTipo',['Crédito e Débito','Apenas Crédito','Apenas Débito']))+fld('Final (4 dígitos)',inp('cartaoFinal','text','required maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="1234"'))+fld('Limite (R$)',inp('cartaoLimite','number','step="0.01" min="0" required')),'saveCartao');
-    }
-
-    /* ============ MODAIS ============ */
-    function openM(id){
-        const m=$(id);
-        m.querySelector('form')?.reset();
-        m.querySelectorAll('input[type=date]').forEach(i=>i.value=today());
-        m.classList.remove('hidden');m.classList.add('flex');
-        if(id==='modalDivida'){setDivTipo('Produto');formUpd('div')}
-        if(id==='modalGasto')formUpd('gasto');
-        const f=m.querySelector('input:not([type=date])');if(f)setTimeout(()=>f.focus(),50);
-    }
-    function closeM(id){const m=$(id);m.classList.add('hidden');m.classList.remove('flex')}
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('#modals > div.flex').forEach(m=>closeM(m.id))});
-    document.addEventListener('click',e=>{if(!$('notifWrap').contains(e.target))$('notifDropdown').classList.add('hidden')});
-
-    function setDivTipo(t){
-        divTipo=t;
-        const on='flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white';
-        const off='flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800';
-        $('btnTipoProduto').className=t==='Produto'?on:off;
-        $('btnTipoServico').className=t==='Serviço'?on:off;
-    }
-
-    /* Atualiza campos dinâmicos dos formulários de dívida (p='div') e gasto (p='gasto') */
-    function formUpd(p){
-        const isCard=$(p+'Forma').value==='Cartão';
-        $(p+'CartaoBox').classList.toggle('hidden',!isCard);
-        if(isCard){
-            const s=$(p+'Cartao'),cur=s.value,cards=list('cartoes');
-            s.innerHTML=cards.map(c=>`<option value="${c.id}">${esc(c.nome)} •${esc(c.final)}</option>`).join('')||'<option value="">Nenhum cartão cadastrado</option>';
-            if(cur&&cards.some(c=>c.id===cur))s.value=cur;
-            const c=cards.find(x=>x.id===s.value),tp=$(p+'TipoCartao'),cur2=tp.value;
-            const opts=c?(c.tipo==='Apenas Crédito'?['Crédito']:c.tipo==='Apenas Débito'?['Débito']:['Crédito','Débito']):['Crédito','Débito'];
-            tp.innerHTML=opts.map(o=>`<option>${o}</option>`).join('');
-            if(opts.includes(cur2))tp.value=cur2;
+    function renderLoginScreen() {
+        const list = document.getElementById('userSelectList');
+        list.innerHTML = '';
+        if (db.usuarios.length === 0) {
+            list.innerHTML = '<p class="text-sm text-white/80 text-center py-2">Nenhum usuário cadastrado. Crie um abaixo.</p>';
+            return;
         }
-        const deb=isCard&&$(p+'TipoCartao').value==='Débito';
-        $(p+'ParcBox').classList.toggle('hidden',deb);
-        if(deb)$(p+'Parc').value='Não';
-        const par=$(p+'Parc').value==='Sim';
-        $(p+'QtdBox').classList.toggle('hidden',!par);
-        $(p+'Lbl').textContent=par?'Valor de cada parcela (R$)':(p==='gasto'?'Valor total à vista (R$)':'Valor mensal (R$)');
-        const pv=$(p+'Preview'),v=parseFloat($(p+'Valor').value),q=Math.max(1,parseInt($(p+'Qtd').value)||1),d=$(p+'Data').value;
-        let txt='';
-        if(par&&v>0)txt=`${q}x de ${fmt(v)} = total de ${fmt(v*q)}`;
-        if(p==='div'&&par&&d)txt+=(txt?' • ':'')+`Término previsto: ${fdate(addMonths(d,q))}`;
-        pv.textContent=txt;pv.classList.toggle('hidden',!txt);
-    }
-
-    function collectPay(p){
-        const forma=$(p+'Forma').value,isCard=forma==='Cartão';
-        let card=null,tipoC='';
-        if(isCard){
-            card=list('cartoes').find(c=>c.id===$(p+'Cartao').value);
-            if(!card){alert('Cadastre um cartão na aba Cartões antes de usar essa forma de pagamento.');return null}
-            tipoC=$(p+'TipoCartao').value;
-        }
-        const par=!$(p+'ParcBox').classList.contains('hidden')&&$(p+'Parc').value==='Sim';
-        const qtd=par?Math.max(1,parseInt($(p+'Qtd').value)||1):1;
-        const v=parseFloat($(p+'Valor').value);
-        if(!(v>0)){alert('Informe um valor maior que zero.');return null}
-        return{forma:isCard?`Cartão ${card.nome} •${card.final} (${tipoC})`:forma,cartaoId:card?card.id:null,tipoCartao:tipoC,parcelado:par,parcelas:qtd,valorParcela:v,valor:+(v*qtd).toFixed(2),data:$(p+'Data').value};
-    }
-
-    /* ============ USUÁRIOS / NAVEGAÇÃO ============ */
-    function renderLoginScreen(){
-        const l=$('userSelectList');l.innerHTML='';
-        if(!db.usuarios.length){l.innerHTML='<p class="text-sm text-white/90 text-center py-2">Nenhum usuário cadastrado. Crie um abaixo.</p>';return}
-        db.usuarios.forEach(u=>{
-            const b=document.createElement('button');
-            b.className='w-full text-left p-4 rounded-2xl bg-white/90 hover:bg-white text-marrom-900 border border-white/40 font-semibold text-base flex items-center justify-between transition shadow-md';
-            b.innerHTML=`<span class="flex items-center gap-3"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block"></span>${esc(u)}</span><span class="text-marrom-700">›</span>`;
-            b.onclick=()=>loginUser(u);
-            l.appendChild(b);
+        db.usuarios.forEach(user => {
+            const btn = document.createElement('button');
+            btn.className = 'w-full text-left p-4 rounded-2xl bg-white/90 hover:bg-white text-marrom-900 border border-white/40 font-semibold text-base flex items-center justify-between transition transform hover:scale-[1.02] shadow-md';
+            btn.innerHTML = `<span class="flex items-center gap-3"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block shadow"></span> ${user}</span> <svg class="w-5 h-5 text-marrom-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+            btn.onclick = () => loginUser(user);
+            list.appendChild(btn);
         });
     }
-    function loginUser(u){
-        db.currentUser=u;
-        ['salarios'].forEach(k=>{if(typeof db[k][u]!=='number')db[k][u]=0});
-        ['entradas','dividas','gastos','cartoes'].forEach(k=>{if(!Array.isArray(db[k][u]))db[k][u]=[]});
-        $('loginScreen').classList.add('hidden');
-        $('userNameDisplay').textContent=u;$('userInitial').textContent=u.charAt(0).toUpperCase();
+
+    function loginUser(userName) {
+        db.currentUser = userName;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('userNameDisplay').innerText = userName;
+        document.getElementById('userInitial').innerText = userName.charAt(0).toUpperCase();
+
+        if (!db.salarios[userName]) db.salarios[userName] = 0;
+        if (!db.entradas[userName]) db.entradas[userName] = [];
+        if (!db.dividas[userName]) db.dividas[userName] = [];
+        if (!db.gastos[userName]) db.gastos[userName] = [];
+        if (!db.cartoes[userName]) db.cartoes[userName] = [];
+
         logAuditoria('Fez login no sistema');
-        currentTab=previousTab='renda';switchTab('renda');
         refreshAllViews();
     }
-    function logout(){
-        if(U())logAuditoria('Saiu do sistema');
-        db.currentUser=null;saveData();
-        $('notifDropdown').classList.add('hidden');
-        $('loginScreen').classList.remove('hidden');renderLoginScreen();
-    }
-    function handleCreateUser(e){
-        e.preventDefault();
-        const n=$('newUserName').value.trim();if(!n)return;
-        if(db.usuarios.some(u=>u.toLowerCase()===n.toLowerCase())){alert('Usuário já existe!');return}
-        db.usuarios.push(n);
-        db.auditoria.push({data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR'),usuario:U()||'—',acao:`Cadastrou o usuário "${n}"`});
-        saveData();closeM('createUserModal');renderLoginScreen();
-        if(U()){renderAuditoria();if(currentTab==='apagarUsuario')renderDeleteUserList()}
-    }
-    function renderDeleteUserList(){
-        const l=$('deleteUserList');
-        if(!db.usuarios.length){l.innerHTML='<p class="text-sm text-marrom-500">Nenhum usuário cadastrado.</p>';return}
-        l.innerHTML='';
-        db.usuarios.forEach(u=>{
-            const r=document.createElement('div');
-            r.className='flex items-center justify-between p-3 bg-marrom-50 rounded-xl border border-marrom-100';
-            r.innerHTML=`<span class="font-medium text-sm">${esc(u)}${u===U()?' <span class="text-xs text-marrom-500">(você)</span>':''}</span>`;
-            const b=document.createElement('button');
-            b.className='text-xs bg-rose-700 hover:bg-rose-800 text-white px-3 py-1.5 rounded-lg transition';b.textContent='Apagar';
-            b.onclick=()=>deleteUser(u);r.appendChild(b);l.appendChild(r);
-        });
-    }
-    function deleteUser(u){
-        if(!confirm(`Apagar o usuário "${u}" e todos os seus dados? Esta ação não pode ser desfeita.`))return;
-        const self=u===U();
-        db.auditoria.push({data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR'),usuario:U()||'—',acao:`Apagou o usuário "${u}"`});
-        db.usuarios=db.usuarios.filter(x=>x!==u);
-        ['salarios','entradas','dividas','gastos','cartoes'].forEach(k=>delete db[k][u]);
-        saveData();
-        if(self){logout();return}
-        renderDeleteUserList();renderAuditoria();
-    }
-    function switchTab(id){
-        if(id!==currentTab){previousTab=currentTab;currentTab=id}
-        document.querySelectorAll('.tab-content').forEach(el=>el.classList.add('hidden'));
-        document.querySelectorAll('.nav-btn').forEach(el=>{el.classList.remove('bg-marrom-700','text-white');el.classList.add('text-marrom-200')});
-        $('tab-'+id).classList.remove('hidden');
-        const a=document.querySelector(`[data-tab="${id}"]`);
-        if(a){a.classList.add('bg-marrom-700','text-white');a.classList.remove('text-marrom-200')}
-        if(id==='apagarUsuario')renderDeleteUserList();
-        $('tabs').parentElement.scrollTop=0;
-    }
-    function goBack(){switchTab(previousTab)}
-    function toggleSidebar(){
-        const s=$('sidebar');s.classList.toggle('w-64');s.classList.toggle('w-20');
-        document.querySelectorAll('.sidebar-text').forEach(el=>el.classList.toggle('hidden'));
-    }
-    function toggleNotifications(){
-        $('notifDropdown').classList.toggle('hidden');
-        if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
-    }
 
-    /* ============ RENDERIZAÇÃO ============ */
-    function refreshAllViews(){renderRenda();renderEntradas();renderDividas();renderGastos();renderCartoes();renderAuditoria();checkNearDueDates()}
-    const sum=(a,f)=>a.reduce((t,x)=>t+(Number(f?f(x):x)||0),0);
-
-    function renderRenda(){
-        const sal=db.salarios[U()]||0,ent=sum(list('entradas'),e=>e.valor),div=sum(list('dividas').filter(isActive),d=>d.valorParcela),gas=sum(list('gastos'),g=>g.valor);
-        $('salarioDisplay').textContent=fmt(sal);
-        $('resumoEntradas').textContent=fmt(ent);$('resumoDividas').textContent=fmt(div);$('resumoGastos').textContent=fmt(gas);
-        const saldo=sal+ent-gas-div,el=$('resumoSaldo');el.textContent=fmt(saldo);
-        el.className='text-xl font-bold mt-1 '+(saldo<0?'text-rose-700':'text-emerald-700');
-    }
-    function toggleEditSalario(){
-        const b=$('salarioEditBox');b.classList.toggle('hidden');b.classList.toggle('flex');
-        $('inputSalario').value=db.salarios[U()]||0;
-    }
-    function saveSalario(){
-        const v=parseFloat($('inputSalario').value);
-        if(!(v>=0)){alert('Informe um valor válido.');return}
-        db.salarios[U()]=v;toggleEditSalario();
-        logAuditoria(`Atualizou o salário mensal para ${fmt(v)}`);renderRenda();
-    }
-
-    function table(heads,rows,right=true){
-        if(!rows.length)return `<div class="bg-white rounded-2xl border border-marrom-100 p-8 text-center text-sm text-marrom-500">Nada por aqui ainda.</div>`;
-        return `<div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-x-auto"><table class="w-full text-left border-collapse text-sm"><thead><tr class="bg-marrom-100 text-marrom-800 text-xs font-semibold">${heads.map((h,i)=>`<th class="p-4 whitespace-nowrap ${right&&i===heads.length-1?'text-right':''}">${h}</th>`).join('')}</tr></thead><tbody class="divide-y divide-marrom-100">${rows.map(r=>`<tr class="hover:bg-marrom-50">${r.map((c,i)=>`<td class="p-4 ${right&&i===r.length-1?'text-right':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-    }
-    const delBtn=(k,id)=>`<button onclick="del('${k}','${id}')" class="text-xs text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-lg">Excluir</button>`;
-
-    function renderEntradas(){
-        const r=[...list('entradas')].sort((a,b)=>b.data.localeCompare(a.data)).map(e=>[esc(e.desc),esc(e.forma),`<b class="text-emerald-700">${fmt(e.valor)}</b>`,fdate(e.data),delBtn('entradas',e.id)]);
-        $('body-entradas').innerHTML=table(['Descrição','Forma','Valor','Data','Ações'],r);
-    }
-    function renderDividas(){
-        const r=[...list('dividas')].sort((a,b)=>b.data.localeCompare(a.data)).map(d=>{
-            const val=d.parcelado?`${d.parcelas}x de ${fmt(d.valorParcela)}<br><span class="text-xs text-marrom-500">Total ${fmt(d.valor)}</span>`:`${fmt(d.valorParcela)}<span class="text-xs text-marrom-500"> /mês</span>`;
-            const fim=d.termino?fdate(d.termino)+(isActive(d)?'':' <span class="text-xs text-emerald-700">(quitada)</span>'):'Recorrente';
-            return[`<b>${esc(d.titulo)}</b><br><span class="text-xs text-marrom-500">${esc(d.tipo)}</span>`,esc(d.forma),val,fdate(d.data),fim,delBtn('dividas',d.id)];
-        });
-        $('body-dividas').innerHTML=table(['Título','Forma','Valor','Início','Término previsto','Ações'],r);
-    }
-    function renderGastos(){
-        const r=[...list('gastos')].sort((a,b)=>b.data.localeCompare(a.data)).map(g=>[esc(g.desc),esc(g.cat),esc(g.forma),g.parcelado?`<b class="text-amber-700">${fmt(g.valor)}</b><br><span class="text-xs text-marrom-500">${g.parcelas}x de ${fmt(g.valorParcela)}</span>`:`<b class="text-amber-700">${fmt(g.valor)}</b>`,fdate(g.data),delBtn('gastos',g.id)]);
-        $('body-gastos').innerHTML=table(['Descrição','Categoria','Forma','Valor','Data','Ações'],r);
-    }
-    function cardUsage(c){
-        const g=sum(list('gastos').filter(x=>x.cartaoId===c.id&&x.tipoCartao==='Crédito'),x=>x.valor);
-        const d=sum(list('dividas').filter(x=>x.cartaoId===c.id&&x.tipoCartao==='Crédito'&&isActive(x)),x=>x.valor);
-        return g+d;
-    }
-    function renderCartoes(){
-        const cs=list('cartoes'),box=$('body-cartoes');
-        if(!cs.length){box.innerHTML=table([],[]);return}
-        box.innerHTML=`<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${cs.map(c=>{
-            const u=cardUsage(c),pct=c.limite>0?Math.min(100,u/c.limite*100):0,cor=pct>=90?'bg-rose-600':pct>=70?'bg-amber-600':'bg-emerald-600';
-            const cred=c.tipo!=='Apenas Débito';
-            return `<div class="bg-marrom-800 text-white rounded-2xl p-5 shadow-md"><div class="flex justify-between items-start"><div><h3 class="font-bold font-title text-lg">${esc(c.nome)}</h3><p class="text-xs text-marrom-200">${esc(c.banco)} • ${esc(c.tipo)}</p></div><button onclick="del('cartoes','${c.id}')" class="text-xs text-marrom-200 hover:text-white">Excluir</button></div>
-    <p class="mt-4 tracking-widest text-sm">•••• •••• •••• ${esc(c.final)}</p>
-    ${cred?`<div class="mt-4 h-2 bg-marrom-900 rounded-full overflow-hidden"><div class="${cor} h-2" style="width:${pct}%"></div></div>
-    <div class="flex justify-between text-xs mt-2 text-marrom-100"><span>Usado ${fmt(u)}</span><span>Limite ${fmt(c.limite)}</span></div>
-    <p class="text-xs mt-1 text-marrom-200">Disponível ${fmt(Math.max(0,c.limite-u))}</p>`:`<p class="text-xs mt-4 text-marrom-200">Limite informado: ${fmt(c.limite)}</p>`}</div>`;
-        }).join('')}</div>`;
-    }
-    function renderAuditoria(){
-        const r=[...db.auditoria].reverse().map(a=>[esc(a.data),esc(a.hora),esc(a.usuario),esc(a.acao)]);
-        $('body-auditoria').innerHTML=table(['Data','Hora','Usuário','Ação realizada'],r,false);
-    }
-
-    /* ============ CRUD ============ */
-    function saveEntrada(e){
-        e.preventDefault();
-        const v=parseFloat($('entValor').value);if(!(v>0)){alert('Informe um valor maior que zero.');return}
-        const x={id:uid(),desc:$('entDesc').value.trim(),forma:$('entForma').value,valor:v,data:$('entData').value};
-        db.entradas[U()].push(x);closeM('modalEntrada');
-        logAuditoria(`Registrou entrada "${x.desc}" de ${fmt(v)}`);refreshAllViews();
-    }
-    function saveDivida(e){
-        e.preventDefault();
-        const p=collectPay('div');if(!p)return;
-        const d={id:uid(),titulo:$('divTitulo').value.trim(),tipo:divTipo,...p,termino:p.parcelado?addMonths(p.data,p.parcelas):null};
-        db.dividas[U()].push(d);closeM('modalDivida');
-        logAuditoria(`Adicionou dívida fixa "${d.titulo}" (${fmt(d.valorParcela)}${d.parcelado?` x ${d.parcelas}`:'/mês'})`);refreshAllViews();
-    }
-    function saveGasto(e){
-        e.preventDefault();
-        const p=collectPay('gasto');if(!p)return;
-        const g={id:uid(),desc:$('gastoDesc').value.trim(),cat:$('gastoCat').value,...p};
-        db.gastos[U()].push(g);closeM('modalGasto');
-        logAuditoria(`Registrou gasto "${g.desc}" de ${fmt(g.valor)}`);refreshAllViews();
-    }
-    function saveCartao(e){
-        e.preventDefault();
-        const f=$('cartaoFinal').value.trim();
-        if(!/^\d{4}$/.test(f)){alert('O final do cartão deve ter exatamente 4 números.');return}
-        const c={id:uid(),nome:$('cartaoNome').value.trim(),banco:$('cartaoBanco').value.trim(),tipo:$('cartaoTipo').value,final:f,limite:parseFloat($('cartaoLimite').value)||0};
-        db.cartoes[U()].push(c);closeM('modalCartao');
-        logAuditoria(`Adicionou o cartão "${c.nome}" •${c.final}`);refreshAllViews();
-    }
-    function del(k,id){
-        const item=list(k).find(x=>x.id===id);if(!item)return;
-        const nome=item.desc||item.titulo||item.nome;
-        if(!confirm(`Excluir "${nome}"?`))return;
-        db[k][U()]=list(k).filter(x=>x.id!==id);
-        logAuditoria(`Excluiu ${k.slice(0,-1)=== 'cartoe'?'cartão':k.replace(/s$/,'')} "${nome}"`);refreshAllViews();
-    }
-
-    /* ============ ALERTAS ============ */
-    function checkNearDueDates(){
-        const al=[],t=today(),lim=addMonths(t,1);
-        list('dividas').forEach(d=>{
-            if(!d.termino)return;
-            if(d.termino<t)return;
-            if(d.termino<=lim)al.push(`📋 A dívida "${esc(d.titulo)}" termina em ${fdate(d.termino)}.`);
-        });
-        list('cartoes').forEach(c=>{
-            if(c.tipo==='Apenas Débito'||!(c.limite>0))return;
-            const pct=cardUsage(c)/c.limite*100;
-            if(pct>=80)al.push(`💳 O cartão "${esc(c.nome)}" usou ${pct.toFixed(0)}% do limite.`);
-        });
-        const s=(db.salarios[U()]||0)+sum(list('entradas'),e=>e.valor)-sum(list('gastos'),g=>g.valor)-sum(list('dividas').filter(isActive),d=>d.valorParcela);
-        if(s<0)al.push('⚠️ Seus gastos e dívidas superam sua renda.');
-        $('notifList').innerHTML=al.length?al.map(a=>`<div class="p-2 bg-marrom-50 rounded-lg border border-marrom-100">${a}</div>`).join(''):'<p class="text-marrom-500 text-center py-4">Nenhuma notificação nova.</p>';
-        const b=$('notifBadge');b.textContent=al.length;b.classList.toggle('hidden',!al.length);b.classList.toggle('flex',!!al.length);
-        if(al.length&&'Notification' in window&&Notification.permission==='granted'&&!sessionStorage.getItem('notif_'+U())){
-            sessionStorage.setItem('notif_'+U(),'1');
-            try{new Notification('Sistema Financeiro Família',{body:al[0].replace(/&quot;/g,'"').replace(/&amp;/g,'&')})}catch(e){}
-        }
-    }
-
-    /* ============ EXPORTAÇÃO ============ */
-    function dataset(k){
-        const T={
-            entradas:{n:'Entradas',h:['Descrição','Forma','Valor','Data'],r:list('entradas').map(e=>[e.desc,e.forma,e.valor,fdate(e.data)])},
-            dividas:{n:'Dívidas Fixas',h:['Título','Tipo','Forma','Parcelas','Valor da parcela','Valor total','Início','Término'],r:list('dividas').map(d=>[d.titulo,d.tipo,d.forma,d.parcelado?d.parcelas+'x':'Mensal',d.valorParcela,d.valor,fdate(d.data),d.termino?fdate(d.termino):'Recorrente'])},
-            gastos:{n:'Gastos',h:['Descrição','Categoria','Forma','Parcelas','Valor total','Data'],r:list('gastos').map(g=>[g.desc,g.cat,g.forma,g.parcelado?g.parcelas+'x':'À vista',g.valor,fdate(g.data)])},
-            cartoes:{n:'Cartões',h:['Nome','Banco','Tipo','Final','Limite','Usado','Disponível'],r:list('cartoes').map(c=>{const u=cardUsage(c);return[c.nome,c.banco,c.tipo,c.final,c.limite,u,Math.max(0,c.limite-u)]})},
-            auditoria:{n:'Auditoria',h:['Data','Hora','Usuário','Ação realizada'],r:db.auditoria.map(a=>[a.data,a.hora,a.usuario,a.acao]).reverse()}
-        };
-        if(k==='geral'){
-            const sal=db.salarios[U()]||0,ent=sum(list('entradas'),e=>e.valor),div=sum(list('dividas').filter(isActive),d=>d.valorParcela),gas=sum(list('gastos'),g=>g.valor);
-            return[{n:'Resumo',h:['Item','Valor'],r:[['Salário',sal],['Total de entradas',ent],['Dívidas fixas (por mês)',div],['Total de gastos',gas],['Saldo estimado',sal+ent-gas-div]]},T.entradas,T.dividas,T.gastos,T.cartoes];
-        }
-        return[T[k]];
-    }
-    function exportExcel(k){
-        if(!window.XLSX){alert('A biblioteca de Excel não carregou. Verifique sua conexão com a internet e recarregue a página.');return}
-        const wb=XLSX.utils.book_new();
-        dataset(k).forEach(s=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([s.h,...s.r]),s.n.slice(0,31)));
-        XLSX.writeFile(wb,`financeiro_${k}_${today()}.xlsx`);
-        logAuditoria(`Exportou relatório Excel (${k})`);
-    }
-    function exportPDF(k){
-        const J=window.jspdf&&window.jspdf.jsPDF;
-        if(!J){alert('A biblioteca de PDF não carregou. Verifique sua conexão com a internet e recarregue a página.');return}
-        const doc=new J();
-        if(typeof doc.autoTable!=='function'){alert('O módulo de tabelas do PDF não carregou. Recarregue a página.');return}
-        doc.setFontSize(16);doc.text('Sistema Financeiro Família',14,16);
-        doc.setFontSize(10);doc.text(`Usuário: ${U()}  •  Emitido em ${new Date().toLocaleString('pt-BR')}`,14,23);
-        let y=30;
-        dataset(k).forEach(s=>{
-            if(y>240){doc.addPage();y=16}
-            doc.setFontSize(12);doc.text(s.n,14,y);
-            doc.autoTable({head:[s.h],body:s.r.map(r=>r.map(c=>typeof c==='number'?fmt(c):String(c))),startY:y+3,styles:{fontSize:8},headStyles:{fillColor:[93,64,55]}});
-            y=doc.lastAutoTable.finalY+12;
-        });
-        doc.save(`financeiro_${k}_${today()}.pdf`);
-        logAuditoria(`Exportou relatório PDF (${k})`);
-    }
-
-    /* ============ INICIALIZAÇÃO ============ */
-    window.addEventListener('load',()=>{
-        buildUI();
-        $('currentDateHeader').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    function logout() {
+        db.currentUser = null;
+        document.getElementById('loginScreen').classList.remove('hidden');
         renderLoginScreen();
-        if(innerWidth<768)toggleSidebar();
-        if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
-            navigator.serviceWorker.register('./sw.js').catch(err=>console.log('Falha Service Worker:',err));
+    }
+
+    function goBackToHome() {
+        // Volta para a aba anterior em vez de ir para o login
+        switchTab(previousTab);
+    }
+
+    function openCreateUserModal() {
+        document.getElementById('createUserModal').classList.remove('hidden');
+    }
+    function closeCreateUserModal() {
+        document.getElementById('createUserModal').classList.add('hidden');
+        document.getElementById('newUserName').value = '';
+    }
+
+    function handleCreateUser(e) {
+        e.preventDefault();
+        const name = document.getElementById('newUserName').value.trim();
+        if (!name) return;
+        if (db.usuarios.includes(name)) {
+            alert('Usuário já existe!');
+            return;
+        }
+        db.usuarios.push(name);
+        saveData();
+        closeCreateUserModal();
+        renderLoginScreen();
+    }
+
+    function switchTab(tabId) {
+        if (tabId !== currentTab) {
+            previousTab = currentTab;
+            currentTab = tabId;
+        }
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.nav-btn').forEach(el => {
+            el.classList.remove('bg-marrom-700', 'text-white');
+            el.classList.add('text-marrom-200');
+        });
+
+        document.getElementById('tab-' + tabId).classList.remove('hidden');
+        const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('bg-marrom-700', 'text-white');
+            activeBtn.classList.remove('text-marrom-200');
+        }
+        if (tabId === 'apagarUsuario') {
+            renderDeleteUserList();
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('w-64');
+        sidebar.classList.toggle('w-20');
+        document.querySelectorAll('.sidebar-text').forEach(el => el.classList.toggle('hidden'));
+    }
+
+    function refreshAllViews() {
+        renderRenda();
+        renderEntradas();
+        renderDividas();
+        renderGastos();
+        renderCartoes();
+        renderAuditoria();
+        checkNearDueDates();
+    }
+
+    function renderRenda() {
+        const user = db.currentUser;
+        const salario = db.salarios[user] || 0;
+        document.getElementById('salarioDisplay').innerText = `R$ ${salario.toFixed(2)}`;
+
+        const totalEntradas = (db.entradas[user] || []).reduce((acc, item) => acc + item.valor, 0);
+        const totalDividas = (db.dividas[user] || []).reduce((acc, item) => acc + item.valor, 0);
+        const totalGastos = (db.gastos[user] || []).reduce((acc, item) => acc + item.valor, 0);
+
+        document.getElementById('resumoEntradas').innerText = `R$ ${totalEntradas.toFixed(2)}`;
+        document.getElementById('resumoDividas').innerText = `R$ ${totalDividas.toFixed(2)}`;
+        document.getElementById('resumoGastos').innerText = `R$ ${totalGastos.toFixed(2)}`;
+    }
+
+    function toggleEditSalario() {
+        const box = document.getElementById('salarioEditBox');
+        box.classList.toggle('hidden');
+        document.getElementById('inputSalario').value = db.salarios[db.currentUser] || 0;
+    }
+
+    function saveSalario() {
+        const val = parseFloat(document.getElementById('inputSalario').value) || 0;
+        db.salarios[db.currentUser] = val;
+        saveData();
+        toggleEditSalario();
+        renderRenda();
+        logAuditoria('Atualizou o salário mensal');
+    }
+
+    // --- ENTRADAS ---
+    function openModalEntrada() { document.getElementById('modalEntrada').classList.remove('hidden'); document.getElementById('entData').valueAsDate = new Date(); }
+    function closeModalEntrada() { document.getElementById('modalEntrada').classList.add('hidden'); }
+
+    function saveEntrada(e) {
+        e.preventDefault();
+        const desc = document.getElementById('entDesc').value;
+        const forma = document.getElementById('entForma').value;
+        const valor = parseFloat(document.getElementById('entValor').value);
+        const data = document.getElementById('entData').value;
+
+        db.entradas[db.currentUser].push({ id: Date.now(), desc, forma, valor, data });
+        saveData();
+        closeModalEntrada();
+        renderEntradas();
+        renderRenda();
+        logAuditoria(`Adicionou entrada: ${desc} (R$ ${valor.toFixed(2)})`);
+    }
+
+    function renderEntradas() {
+        const tbody = document.getElementById('tabelaEntradasBody');
+        tbody.innerHTML = '';
+        const entradas = db.entradas[db.currentUser] || [];
+        if (entradas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-marrom-500">Nenhuma entrada cadastrada.</td></tr>';
+            return;
+        }
+        entradas.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-marrom-50/50';
+            tr.innerHTML = `
+                    <td class="p-4 font-medium text-marrom-900">${item.desc}</td>
+                    <td class="p-4 text-marrom-600">${item.forma}</td>
+                    <td class="p-4 font-bold text-emerald-700">R$ ${item.valor.toFixed(2)}</td>
+                    <td class="p-4 text-marrom-600">${item.data.split('-').reverse().join('/')}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteEntrada(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                    </td>
+                `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function deleteEntrada(id) {
+        if (confirm("Deseja realmente remover essa entrada?")) {
+            db.entradas[db.currentUser] = db.entradas[db.currentUser].filter(i => i.id !== id);
+            saveData();
+            renderEntradas();
+            renderRenda();
+            logAuditoria('Removeu uma entrada de dinheiro');
+        }
+    }
+
+    // --- DÍVIDAS FIXAS ---
+    function openModalDivida() {
+        document.getElementById('modalDivida').classList.remove('hidden');
+        document.getElementById('divData').valueAsDate = new Date();
+        updateCartaoSelects();
+        handleDivFormaChange();
+    }
+    function closeModalDivida() { document.getElementById('modalDivida').classList.add('hidden'); }
+
+    function setDivTipo(tipo) {
+        currentDivTipo = tipo;
+        if (tipo === 'Produto') {
+            document.getElementById('btnTipoProduto').className = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white';
+            document.getElementById('btnTipoServico').className = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800';
+        } else {
+            document.getElementById('btnTipoServico').className = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white';
+            document.getElementById('btnTipoProduto').className = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800';
+        }
+    }
+
+    function handleDivFormaChange() {
+        const forma = document.getElementById('divForma').value;
+        const cartaoCont = document.getElementById('divCartaoContainer');
+        const parceladoSelect = document.getElementById('divParcelado');
+
+        if (forma === 'Cartão') {
+            cartaoCont.classList.remove('hidden');
+            handleCartaoTipoChange();
+        } else {
+            cartaoCont.classList.add('hidden');
+            document.getElementById('divParceladoContainer').classList.remove('hidden');
+            if (forma === 'Pix') {
+                parceladoSelect.value = 'Não';
+                parceladoSelect.disabled = true;
+                document.getElementById('divQtdParcelasContainer').classList.add('hidden');
+            } else {
+                parceladoSelect.disabled = false;
+            }
+        }
+    }
+
+    function handleCartaoTipoChange() {
+        const tipoCartao = document.getElementById('divTipoCartao').value;
+        const parceladoSelect = document.getElementById('divParcelado');
+        if (tipoCartao === 'Débito') {
+            parceladoSelect.value = 'Não';
+            parceladoSelect.disabled = true;
+            document.getElementById('divQtdParcelasContainer').classList.add('hidden');
+        } else {
+            parceladoSelect.disabled = false;
+        }
+    }
+
+    function handleParceladoChange() {
+        const isSim = document.getElementById('divParcelado').value === 'Sim';
+        const qtdCont = document.getElementById('divQtdParcelasContainer');
+        if (isSim) {
+            qtdCont.classList.remove('hidden');
+        } else {
+            qtdCont.classList.add('hidden');
+        }
+        calcDividaTermino();
+    }
+
+    function calcDividaTermino() {
+        const dataInicio = document.getElementById('divData').value;
+        const parcelado = document.getElementById('divParcelado').value === 'Sim';
+        const vezes = parseInt(document.getElementById('divQtdVezes').value) || 1;
+        const preview = document.getElementById('divTerminoPreview');
+
+        if (dataInicio && parcelado && vezes > 1) {
+            let dt = new Date(dataInicio);
+            dt.setMonth(dt.getMonth() + vezes);
+            preview.innerText = `Previsão de término: ${dt.toLocaleDateString('pt-BR')}`;
+            preview.classList.remove('hidden');
+        } else {
+            preview.classList.add('hidden');
+        }
+    }
+
+    function saveDivida(e) {
+        e.preventDefault();
+        const titulo = document.getElementById('divTitulo').value;
+        const forma = document.getElementById('divForma').value;
+        const valor = parseFloat(document.getElementById('divValor').value);
+        const data = document.getElementById('divData').value;
+        const parcelado = document.getElementById('divParcelado').value;
+        const vezes = parseInt(document.getElementById('divQtdVezes').value) || 1;
+
+        let terminoPrevisto = '-';
+        if (parcelado === 'Sim' && data) {
+            let dt = new Date(data);
+            dt.setMonth(dt.getMonth() + vezes);
+            terminoPrevisto = dt.toLocaleDateString('pt-BR');
+        }
+
+        db.dividas[db.currentUser].push({ id: Date.now(), titulo, tipo: currentDivTipo, forma, valor, data, parcelado, vezes, terminoPrevisto });
+        saveData();
+        closeModalDivida();
+        renderDividas();
+        renderRenda();
+        logAuditoria(`Adicionou dívida fixa: ${titulo} (R$ ${valor.toFixed(2)})`);
+    }
+
+    function renderDividas() {
+        const tbody = document.getElementById('tabelaDividasBody');
+        tbody.innerHTML = '';
+        const dividas = db.dividas[db.currentUser] || [];
+        if (dividas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-marrom-500">Nenhuma dívida fixa cadastrada.</td></tr>';
+            return;
+        }
+        dividas.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-marrom-50/50';
+            tr.innerHTML = `
+                    <td class="p-4 font-medium text-marrom-900">${item.titulo}</td>
+                    <td class="p-4 font-bold text-rose-700">R$ ${item.valor.toFixed(2)}</td>
+                    <td class="p-4 text-marrom-600">${item.terminoPrevisto}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteDivida(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                    </td>
+                `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function deleteDivida(id) {
+        if (confirm("Deseja realmente remover essa dívida?")) {
+            db.dividas[db.currentUser] = db.dividas[db.currentUser].filter(i => i.id !== id);
+            saveData();
+            renderDividas();
+            renderRenda();
+            logAuditoria('Removeu uma dívida fixa');
+        }
+    }
+
+    // --- GASTOS ---
+    function openModalGasto() {
+        document.getElementById('modalGasto').classList.remove('hidden');
+        document.getElementById('gastoData').valueAsDate = new Date();
+        updateCartaoSelects();
+        handleGastoFormaChange();
+    }
+    function closeModalGasto() { document.getElementById('modalGasto').classList.add('hidden'); }
+
+    function handleGastoFormaChange() {
+        const forma = document.getElementById('gastoForma').value;
+        const cartaoCont = document.getElementById('gastoCartaoContainer');
+        const parceladoSelect = document.getElementById('gastoParcelado');
+
+        if (forma === 'Cartão') {
+            cartaoCont.classList.remove('hidden');
+            handleGastoCartaoTipoChange();
+        } else {
+            cartaoCont.classList.add('hidden');
+            document.getElementById('gastoParceladoContainer').classList.remove('hidden');
+            if (forma === 'Pix') {
+                parceladoSelect.value = 'Não';
+                parceladoSelect.disabled = true;
+                document.getElementById('gastoQtdVezesContainer').classList.add('hidden');
+            } else {
+                parceladoSelect.disabled = false;
+            }
+        }
+    }
+
+    function handleGastoCartaoTipoChange() {
+        const tipoCartao = document.getElementById('gastoTipoCartao').value;
+        const parceladoSelect = document.getElementById('gastoParcelado');
+        if (tipoCartao === 'Débito') {
+            parceladoSelect.value = 'Não';
+            parceladoSelect.disabled = true;
+            document.getElementById('gastoQtdVezesContainer').classList.add('hidden');
+        } else {
+            parceladoSelect.disabled = false;
+        }
+    }
+
+    function handleGastoParceladoChange() {
+        const isSim = document.getElementById('gastoParcelado').value === 'Sim';
+        const qtdCont = document.getElementById('gastoQtdVezesContainer');
+        const lblValor = document.getElementById('lblValorGasto');
+        if (isSim) {
+            qtdCont.classList.remove('hidden');
+            lblValor.innerText = 'Valor Total';
+        } else {
+            qtdCont.classList.add('hidden');
+            lblValor.innerText = 'Valor Total à Vista';
+        }
+    }
+
+    function saveGasto(e) {
+        e.preventDefault();
+        const desc = document.getElementById('gastoDesc').value;
+        const categoria = document.getElementById('gastoCat').value;
+        const forma = document.getElementById('gastoForma').value;
+        const valor = parseFloat(document.getElementById('gastoValor').value);
+        const data = document.getElementById('gastoData').value;
+
+        db.gastos[db.currentUser].push({ id: Date.now(), desc, categoria, forma, valor, data });
+        saveData();
+        closeModalGasto();
+        renderGastos();
+        renderRenda();
+        logAuditoria(`Registrou gasto: ${desc} (R$ ${valor.toFixed(2)})`);
+    }
+
+    function renderGastos() {
+        const tbody = document.getElementById('tabelaGastosBody');
+        tbody.innerHTML = '';
+        const gastos = db.gastos[db.currentUser] || [];
+        if (gastos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-marrom-500">Nenhum gasto registrado.</td></tr>';
+            return;
+        }
+        gastos.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-marrom-50/50';
+            tr.innerHTML = `
+                    <td class="p-4 font-medium text-marrom-900">${item.desc}</td>
+                    <td class="p-4 text-marrom-600">${item.categoria}</td>
+                    <td class="p-4 text-marrom-600">${item.forma}</td>
+                    <td class="p-4 font-bold text-amber-700">R$ ${item.valor.toFixed(2)}</td>
+                    <td class="p-4 text-marrom-600">${item.data.split('-').reverse().join('/')}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteGasto(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                    </td>
+                `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function deleteGasto(id) {
+        if (confirm("Deseja realmente remover esse gasto?")) {
+            db.gastos[db.currentUser] = db.gastos[db.currentUser].filter(i => i.id !== id);
+            saveData();
+            renderGastos();
+            renderRenda();
+            logAuditoria('Removeu um gasto');
+        }
+    }
+
+    // --- CARTÕES ---
+    function openModalCartao() { document.getElementById('modalCartao').classList.remove('hidden'); }
+    function closeModalCartao() { document.getElementById('modalCartao').classList.add('hidden'); }
+
+    function saveCartao(e) {
+        e.preventDefault();
+        const nome = document.getElementById('cartaoNome').value;
+        const banco = document.getElementById('cartaoBanco').value;
+        const tipo = document.getElementById('cartaoTipo').value;
+        const final = document.getElementById('cartaoFinal').value;
+        const limite = parseFloat(document.getElementById('cartaoLimite').value);
+
+        db.cartoes[db.currentUser].push({ id: Date.now(), nome, banco, tipo, final, limite });
+        saveData();
+        closeModalCartao();
+        renderCartoes();
+        logAuditoria(`Adicionou cartão: ${nome} (${banco})`);
+    }
+
+    function renderCartoes() {
+        const grid = document.getElementById('cartoesGrid');
+        grid.innerHTML = '';
+        const cartoes = db.cartoes[db.currentUser] || [];
+        if (cartoes.length === 0) {
+            grid.innerHTML = '<p class="text-sm text-marrom-500 col-span-3 text-center py-4">Nenhum cartão cadastrado.</p>';
+            return;
+        }
+        cartoes.forEach(c => {
+            const card = document.createElement('div');
+            card.className = 'bg-marrom-800 text-white p-5 rounded-2xl shadow-md relative flex flex-col justify-between h-44 card-item';
+            card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs uppercase tracking-wider text-marrom-300">${c.banco}</span>
+                            <h4 class="font-bold text-base text-white">${c.nome}</h4>
+                        </div>
+                        <button onclick="deleteCartao(${c.id})" class="text-marrom-300 hover:text-white p-1 no-export" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                    </div>
+                    <div>
+                        <span class="text-xs text-marrom-300">${c.tipo}</span>
+                        <div class="flex justify-between items-end mt-2">
+                            <span class="text-lg font-mono tracking-widest">•••• ${c.final}</span>
+                            <span class="text-xs font-medium">Limite: R$ ${c.limite.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            grid.appendChild(card);
+        });
+    }
+
+    function deleteCartao(id) {
+        if (confirm("Certeza que deseja remover esse cartão?")) {
+            db.cartoes[db.currentUser] = db.cartoes[db.currentUser].filter(i => i.id !== id);
+            saveData();
+            renderCartoes();
+            logAuditoria('Removeu um cartão');
+        }
+    }
+
+    function updateCartaoSelects() {
+        const cartoes = db.cartoes[db.currentUser] || [];
+        const sel1 = document.getElementById('divCartaoSelect');
+        const sel2 = document.getElementById('gastoCartaoSelect');
+        sel1.innerHTML = '';
+        sel2.innerHTML = '';
+        if (cartoes.length === 0) {
+            sel1.innerHTML = '<option value="">Cadastre um cartão primeiro</option>';
+            sel2.innerHTML = '<option value="">Cadastre um cartão primeiro</option>';
+            return;
+        }
+        cartoes.forEach(c => {
+            const opt = `<option value="${c.nome} (${c.banco})">${c.nome} - ${c.banco} (•••• ${c.final})</option>`;
+            sel1.innerHTML += opt;
+            sel2.innerHTML += opt;
+        });
+    }
+
+    // --- EXPORTAÇÃO EXCEL E PDF ---
+    function exportExcel(tab) {
+        const user = db.currentUser;
+        const wb = XLSX.utils.book_new();
+        let fileName = `relatorio_${tab}_${user}.xlsx`;
+
+        if (tab === 'geral') {
+            fileName = `relatorio_geral_completo_${user}.xlsx`;
+
+            // Renda / Salário
+            const rendaData = [{ 'Métrica': 'Salário Mensal', 'Valor (R$)': db.salarios[user] || 0 }];
+            const wsRenda = XLSX.utils.json_to_sheet(rendaData);
+            XLSX.utils.book_append_sheet(wb, wsRenda, 'Renda');
+
+            // Entradas
+            const entradasData = (db.entradas[user] || []).map(i => ({ 'Descrição': i.desc, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Data': i.data }));
+            if (entradasData.length > 0) {
+                const wsEntradas = XLSX.utils.json_to_sheet(entradasData);
+                XLSX.utils.book_append_sheet(wb, wsEntradas, 'Entradas');
+            }
+
+            // Dívidas
+            const dividasData = (db.dividas[user] || []).map(i => ({ 'Título': i.titulo, 'Tipo': i.tipo, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Término Previsto': i.terminoPrevisto }));
+            if (dividasData.length > 0) {
+                const wsDividas = XLSX.utils.json_to_sheet(dividasData);
+                XLSX.utils.book_append_sheet(wb, wsDividas, 'Dívidas Fixas');
+            }
+
+            // Gastos
+            const gastosData = (db.gastos[user] || []).map(i => ({ 'Descrição': i.desc, 'Categoria': i.categoria, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Data': i.data }));
+            if (gastosData.length > 0) {
+                const wsGastos = XLSX.utils.json_to_sheet(gastosData);
+                XLSX.utils.book_append_sheet(wb, wsGastos, 'Gastos');
+            }
+
+            // Cartões
+            const cartoesData = (db.cartoes[user] || []).map(i => ({ 'Nome': i.nome, 'Banco': i.banco, 'Tipo': i.tipo, 'Final': i.final, 'Limite (R$)': i.limite }));
+            if (cartoesData.length > 0) {
+                const wsCartoes = XLSX.utils.json_to_sheet(cartoesData);
+                XLSX.utils.book_append_sheet(wb, wsCartoes, 'Cartões');
+            }
+
+            XLSX.writeFile(wb, fileName);
+            logAuditoria('Exportou relatório geral completo para Excel');
+            return;
+        }
+
+        let dataObj = [];
+        if (tab === 'renda') {
+            dataObj = [{ Tipo: 'Salário', Valor: db.salarios[user] || 0 }];
+        } else if (tab === 'entradas') {
+            dataObj = (db.entradas[user] || []).map(i => ({ Descrição: i.desc, Forma: i.forma, Valor: i.valor, Data: i.data }));
+        } else if (tab === 'dividas') {
+            dataObj = (db.dividas[user] || []).map(i => ({ Título: i.titulo, Tipo: i.tipo, Forma: i.forma, Valor: i.valor, 'Término Previsto': i.terminoPrevisto }));
+        } else if (tab === 'gastos') {
+            dataObj = (db.gastos[user] || []).map(i => ({ Descrição: i.desc, Categoria: i.categoria, Forma: i.forma, Valor: i.valor, Data: i.data }));
+        } else if (tab === 'cartoes') {
+            dataObj = (db.cartoes[user] || []).map(i => ({ Nome: i.nome, Banco: i.banco, Tipo: i.tipo, Final: i.final, Limite: i.limite }));
+        } else if (tab === 'auditoria') {
+            dataObj = db.auditoria.map(i => ({ Data: i.data, Hora: i.hora, Usuário: i.usuario, Ação: i.acao }));
+        }
+
+        if (dataObj.length === 0) {
+            alert('Não há dados para exportar nesta janela.');
+            return;
+        }
+
+        const ws = XLSX.utils.json_to_sheet(dataObj);
+        XLSX.utils.book_append_sheet(wb, ws, tab.toUpperCase());
+        XLSX.writeFile(wb, fileName);
+        logAuditoria(`Exportou dados de ${tab} para Excel`);
+    }
+
+    function exportPDF(tab) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const user = db.currentUser;
+
+        if (tab === 'geral') {
+            doc.setFontSize(18);
+            doc.text(`Relatório Geral Financeiro - ${user}`, 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
+
+            let startY = 36;
+
+            // 1. Renda
+            doc.setFontSize(12);
+            doc.text('1. Renda (Salário)', 14, startY);
+            doc.autoTable({
+                head: [['Métrica', 'Valor']],
+                body: [['Salário Mensal', `R$ ${(db.salarios[user] || 0).toFixed(2)}`]],
+                startY: startY + 4,
+                theme: 'grid',
+                headStyles: { fillColor: [93, 64, 55] }
+            });
+
+            // 2. Entradas
+            let finalY = doc.lastAutoTable.finalY + 10;
+            doc.text('2. Entradas de Dinheiro', 14, finalY);
+            const entradasRows = (db.entradas[user] || []).map(i => [i.desc, i.forma, `R$ ${i.valor.toFixed(2)}`, i.data]);
+            doc.autoTable({
+                head: [['Descrição', 'Forma', 'Valor', 'Data']],
+                body: entradasRows.length > 0 ? entradasRows : [['Nenhuma entrada', '-', '-', '-']],
+                startY: finalY + 4,
+                theme: 'grid',
+                headStyles: { fillColor: [93, 64, 55] }
+            });
+
+            // 3. Dívidas Fixas
+            finalY = doc.lastAutoTable.finalY + 10;
+            if (finalY > 250) { doc.addPage(); finalY = 20; }
+            doc.text('3. Dívidas Fixas', 14, finalY);
+            const dividasRows = (db.dividas[user] || []).map(i => [i.titulo, i.tipo, i.forma, `R$ ${i.valor.toFixed(2)}`, i.terminoPrevisto]);
+            doc.autoTable({
+                head: [['Título', 'Tipo', 'Forma', 'Valor', 'Término']],
+                body: dividasRows.length > 0 ? dividasRows : [['Nenhuma dívida', '-', '-', '-', '-']],
+                startY: finalY + 4,
+                theme: 'grid',
+                headStyles: { fillColor: [93, 64, 55] }
+            });
+
+            // 4. Gastos
+            finalY = doc.lastAutoTable.finalY + 10;
+            if (finalY > 250) { doc.addPage(); finalY = 20; }
+            doc.text('4. Gastos', 14, finalY);
+            const gastosRows = (db.gastos[user] || []).map(i => [i.desc, i.categoria, i.forma, `R$ ${i.valor.toFixed(2)}`, i.data]);
+            doc.autoTable({
+                head: [['Descrição', 'Categoria', 'Forma', 'Valor', 'Data']],
+                body: gastosRows.length > 0 ? gastosRows : [['Nenhum gasto', '-', '-', '-', '-']],
+                startY: finalY + 4,
+                theme: 'grid',
+                headStyles: { fillColor: [93, 64, 55] }
+            });
+
+            // 5. Cartões
+            finalY = doc.lastAutoTable.finalY + 10;
+            if (finalY > 250) { doc.addPage(); finalY = 20; }
+            doc.text('5. Cartões', 14, finalY);
+            const cartoesRows = (db.cartoes[user] || []).map(i => [i.nome, i.banco, i.tipo, i.final, `R$ ${i.limite.toFixed(2)}`]);
+            doc.autoTable({
+                head: [['Nome', 'Banco', 'Tipo', 'Final', 'Limite']],
+                body: cartoesRows.length > 0 ? cartoesRows : [['Nenhum cartão', '-', '-', '-', '-']],
+                startY: finalY + 4,
+                theme: 'grid',
+                headStyles: { fillColor: [93, 64, 55] }
+            });
+
+            doc.save(`relatorio_geral_completo_${user}.pdf`);
+            logAuditoria('Exportou relatório geral completo para PDF');
+            return;
+        }
+
+        doc.setFontSize(16);
+        doc.text(`Relatório de ${tab.toUpperCase()} - ${user}`, 14, 20);
+        doc.setFontSize(10);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
+
+        let columns = [];
+        let rows = [];
+
+        if (tab === 'renda') {
+            columns = ['Métrica', 'Valor'];
+            rows = [['Salário', `R$ ${(db.salarios[user] || 0).toFixed(2)}`]];
+        } else if (tab === 'entradas') {
+            columns = ['Descrição', 'Forma', 'Valor', 'Data'];
+            rows = (db.entradas[user] || []).map(i => [i.desc, i.forma, `R$ ${i.valor.toFixed(2)}`, i.data]);
+        } else if (tab === 'dividas') {
+            columns = ['Título', 'Tipo', 'Forma', 'Valor', 'Término'];
+            rows = (db.dividas[user] || []).map(i => [i.titulo, i.tipo, i.forma, `R$ ${i.valor.toFixed(2)}`, i.terminoPrevisto]);
+        } else if (tab === 'gastos') {
+            columns = ['Descrição', 'Categoria', 'Forma', 'Valor', 'Data'];
+            rows = (db.gastos[user] || []).map(i => [i.desc, i.categoria, i.forma, `R$ ${i.valor.toFixed(2)}`, i.data]);
+        } else if (tab === 'cartoes') {
+            columns = ['Nome', 'Banco', 'Tipo', 'Final', 'Limite'];
+            rows = (db.cartoes[user] || []).map(i => [i.nome, i.banco, i.tipo, i.final, `R$ ${i.limite.toFixed(2)}`]);
+        } else if (tab === 'auditoria') {
+            columns = ['Data', 'Hora', 'Usuário', 'Ação'];
+            rows = db.auditoria.map(i => [i.data, i.hora, i.usuario, i.acao]);
+        }
+
+        if (rows.length === 0) {
+            alert('Não há dados para exportar nesta janela.');
+            return;
+        }
+
+        doc.autoTable({
+            head: [columns],
+            body: rows,
+            startY: 35,
+            theme: 'grid',
+            headStyles: { fillColor: [93, 64, 55] }
+        });
+
+        doc.save(`${tab}_${user}.pdf`);
+        logAuditoria(`Exportou dados de ${tab} para PDF`);
+    }
+
+    // --- DROPDOWN DE EXPORTAÇÃO ---
+    function toggleDropdown(id) {
+        // Fecha todos os outros dropdowns
+        document.querySelectorAll('[id$="Dropdown"], [id^="excelDropdown"], [id^="pdfDropdown"]').forEach(el => {
+            if (el.id !== id && el.id !== 'notifDropdown') el.classList.add('hidden');
+        });
+        const drop = document.getElementById(id);
+        if (drop) drop.classList.toggle('hidden');
+    }
+
+    // Fechar dropdowns ao clicar fora
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('button')) {
+            document.querySelectorAll('[id$="Dropdown"], [id^="excelDropdown"], [id^="pdfDropdown"]').forEach(el => {
+                if (el.id !== 'notifDropdown') el.classList.add('hidden');
+            });
         }
     });
+
+    // --- AUDITORIA ---
+    function logAuditoria(acao) {
+        if (!db.currentUser) return;
+        const agora = new Date();
+        const data = agora.toLocaleDateString('pt-BR');
+        const hora = agora.toLocaleTimeString('pt-BR');
+        db.auditoria.unshift({ data, hora, usuario: db.currentUser, acao });
+        if (db.auditoria.length > 50) db.auditoria.pop();
+        saveData();
+    }
+
+    function renderAuditoria() {
+        const tbody = document.getElementById('tabelaAuditoriaBody');
+        tbody.innerHTML = '';
+        if (db.auditoria.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-marrom-500">Nenhum registro de auditoria.</td></tr>';
+            return;
+        }
+        db.auditoria.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-marrom-50/50';
+            tr.innerHTML = `
+                    <td class="p-4 text-marrom-600">${item.data}</td>
+                    <td class="p-4 text-marrom-600">${item.hora}</td>
+                    <td class="p-4 font-semibold text-marrom-900">${item.usuario}</td>
+                    <td class="p-4 text-marrom-800">${item.acao}</td>
+                `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- APAGAR USUÁRIO ---
+    function renderDeleteUserList() {
+        const container = document.getElementById('deleteUserList');
+        container.innerHTML = '';
+        if (db.usuarios.length === 0) {
+            container.innerHTML = '<p class="text-sm text-marrom-500">Nenhum usuário cadastrado.</p>';
+            return;
+        }
+        db.usuarios.forEach(user => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between p-3 border border-marrom-200 rounded-xl bg-marrom-50';
+            div.innerHTML = `
+                    <span class="font-medium text-sm text-marrom-900">${user}</span>
+                    <button onclick="deleteUser('${user}')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">Apagar</button>
+                `;
+            container.appendChild(div);
+        });
+    }
+
+    function deleteUser(user) {
+        if (confirm(`Deseja realmente apagar o usuário ${user} e todos os seus dados?`)) {
+            db.usuarios = db.usuarios.filter(u => u !== user);
+            delete db.salarios[user];
+            delete db.entradas[user];
+            delete db.dividas[user];
+            delete db.gastos[user];
+            delete db.cartoes[user];
+            saveData();
+            renderDeleteUserList();
+            if (db.currentUser === user) {
+                logout();
+            } else {
+                renderLoginScreen();
+            }
+        }
+    }
+
+    // --- NOTIFICAÇÕES ---
+    function toggleNotifications() {
+        const dropdown = document.getElementById('notifDropdown');
+        dropdown.classList.toggle('hidden');
+    }
+
+    function checkNearDueDates() {
+        const dividas = db.dividas[db.currentUser] || [];
+        const notifList = document.getElementById('notifList');
+        const badge = document.getElementById('notifBadge');
+
+        let count = 0;
+        notifList.innerHTML = '';
+
+        const hoje = new Date();
+        dividas.forEach(d => {
+            if (d.data) {
+                const dtVenc = new Date(d.data);
+                const diffTime = dtVenc - hoje;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays >= 0 && diffDays <= 3) {
+                    count++;
+                    const item = document.createElement('div');
+                    item.className = 'p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-900';
+                    item.innerHTML = `<strong>Atenção:</strong> A dívida <em>${d.titulo}</em> vence em breve (${d.data.split('-').reverse().join('/')}).`;
+                    notifList.appendChild(item);
+
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('Alerta de Vencimento', {
+                            body: `A parcela da dívida "${d.titulo}" vence no dia ${d.data.split('-').reverse().join('/')}.`,
+                            icon: './icon-192.png'
+                        });
+                    }
+                }
+            }
+        });
+
+        if (count > 0) {
+            badge.innerText = count;
+            badge.classList.remove('hidden');
+        } else {
+            notifList.innerHTML = '<p class="text-marrom-500 text-center py-2">Nenhuma notificação de vencimento próximo.</p>';
+            badge.classList.add('hidden');
+        }
+    }
 </script>
 </body>
 </html>
