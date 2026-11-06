@@ -3,895 +3,521 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Seguro • Financeiro</title>
+    <title>Sistema Financeiro Família</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { marrom: {
-                            50:'#fdfbf7',100:'#f4ede2',200:'#e3d5c3',300:'#c9b49c',400:'#a1887f',500:'#8d6e63',
-                            600:'#795548',700:'#6d4c41',800:'#5d4037',900:'#3e2723' } } } } }
+        tailwind.config={theme:{extend:{colors:{marrom:{50:'#fdfbf7',100:'#f4ede2',200:'#d7ccc8',300:'#bcaaa4',400:'#a1887f',500:'#8d6e63',600:'#795548',700:'#6d4c41',800:'#5d4037',900:'#3e2723'}}}}}
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#5d4037">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('Falha Service Worker:', err));
-            });
-        }
-    </script>
-    <style type="text/tailwindcss">
-        body { font-family: 'Inter', sans-serif; }
-        .inp { @apply w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-marrom-600 disabled:bg-marrom-50 disabled:text-marrom-400; }
-        .lbl { @apply block text-xs font-semibold text-marrom-700 uppercase mb-1; }
-        .btn { @apply bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2; }
-        .btn-cancel { @apply px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg; }
-        .btn-ok { @apply px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium; }
-        .card { @apply bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-x-auto; }
-        .tbl { @apply w-full min-w-[560px] text-left border-collapse text-sm; }
-        .tbl thead tr { @apply bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold; }
-        .tbl th, .tbl td { @apply p-4; }
-        .tbl tbody { @apply divide-y divide-marrom-100; }
-        .tbl tbody tr:hover { @apply bg-marrom-50; }
-        .modal { @apply fixed inset-0 bg-black/50 z-50 items-center justify-center p-4; }
-        .box { @apply bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto; }
-        .nav-btn { @apply w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200; }
-        .nav-btn.active { @apply bg-marrom-700 text-white; }
-        .stat { @apply p-4 bg-marrom-50 rounded-xl border border-marrom-100; }
-        .stat span { @apply text-xs font-semibold text-marrom-600 uppercase; }
-        .stat p { @apply text-xl font-bold mt-1; }
-        .del { @apply text-rose-600 hover:text-rose-800 p-1; }
-        .sub { @apply block text-[11px] text-marrom-500 font-normal; }
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body{font-family:'Inter',system-ui,sans-serif}
+        .font-title{font-family:'Playfair Display',Georgia,serif}
+        @keyframes wave{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        .vintage-wave-bg{background:linear-gradient(135deg,#fdfbf7 0%,#d7ccc8 25%,#8d6e63 50%,#5d4037 75%,#f4ede2 100%);background-size:300% 300%;animation:wave 12s ease infinite}
+        @media (prefers-reduced-motion:reduce){.vintage-wave-bg{animation:none}}
     </style>
 </head>
 <body class="bg-marrom-50 text-marrom-900 h-screen flex flex-col overflow-hidden">
 
 <!-- LOGIN -->
-<div id="loginScreen" class="modal bg-marrom-900/70" style="display:flex">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-marrom-100">
-        <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-marrom-800 text-white rounded-full text-2xl font-bold mb-3 shadow-md">SF</div>
-            <h2 class="text-2xl font-bold">Sistema Seguro Financeiro</h2>
-            <p class="text-sm text-marrom-600 mt-1">Selecione seu usuário ou cadastre um novo</p>
-        </div>
-        <div id="userSelectList" class="space-y-3 mb-6 max-h-48 overflow-y-auto"></div>
-        <div class="border-t border-marrom-100 pt-4">
-            <button onclick="openCreateUserModal()" class="w-full bg-marrom-100 hover:bg-marrom-600 hover:text-white text-marrom-800 font-medium py-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2">
-                <i data-i="plus"></i> Adicionar Novo Usuário
-            </button>
+<div id="loginScreen" class="fixed inset-0 vintage-wave-bg z-50 flex flex-col items-center justify-between p-6">
+    <div class="flex-1 flex flex-col items-center justify-center w-full max-w-md text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-marrom-800 text-white rounded-full text-3xl font-bold mb-4 shadow-2xl border-2 border-white/40">SF</div>
+        <h1 class="text-4xl md:text-5xl font-bold text-marrom-900 mb-3 tracking-tight">Sistema Financeiro Família</h1>
+        <p class="text-sm text-marrom-800 mb-8 font-medium">Organização inteligente e aconchegante para as finanças da sua casa</p>
+        <div class="w-full space-y-3">
+            <h3 class="text-sm font-bold text-marrom-800 mb-3">Selecione seu usuário</h3>
+            <div id="userSelectList" class="space-y-3 max-h-52 overflow-y-auto pr-1"></div>
+            <button onclick="openM('createUserModal')" class="w-full bg-marrom-800/80 hover:bg-marrom-900 text-white font-medium py-3 px-4 rounded-2xl transition text-sm border border-white/30 shadow-md">+ Adicionar novo usuário</button>
         </div>
     </div>
-</div>
-
-<!-- MODAL NOVO USUÁRIO -->
-<div id="createUserModal" class="modal hidden z-[60]">
-    <div class="box max-w-sm">
-        <h3 class="text-lg font-bold mb-4">Cadastrar Novo Usuário</h3>
-        <form onsubmit="handleCreateUser(event)">
-            <div class="mb-4">
-                <label class="lbl">Nome do Usuário</label>
-                <input type="text" id="newUserName" required maxlength="40" class="inp">
-            </div>
-            <div class="mb-4">
-                <label class="lbl">Senha (mín. 4 caracteres)</label>
-                <input type="text" id="newUserPass" required minlength="4" maxlength="30" autocomplete="off" class="inp">
-                <p class="text-[11px] text-marrom-500 mt-1">Ela ficará visível no menu, logo abaixo do seu nome.</p>
-            </div>
-            <div class="flex justify-end gap-2">
-                <button type="button" onclick="closeCreateUserModal()" class="btn-cancel">Cancelar</button>
-                <button type="submit" class="btn-ok">Cadastrar</button>
-            </div>
-        </form>
-    </div>
+    <footer class="text-center text-sm font-semibold text-marrom-900 py-4">Financeira Família Bem-Bem • Todos os direitos reservados</footer>
 </div>
 
 <!-- CABEÇALHO -->
 <header class="bg-marrom-800 text-white px-4 md:px-6 py-3 flex items-center justify-between shadow-md z-20">
     <div class="flex items-center gap-3">
-        <button onclick="toggleSidebar()" class="p-1.5 rounded-lg hover:bg-marrom-700 transition" title="Recolher/Ampliar Menu"><i data-i="menu" data-c="w-6 h-6"></i></button>
-        <span class="font-semibold tracking-wide text-sm md:text-base">Sistema seguro • Financeiro</span>
+        <button onclick="toggleSidebar()" class="p-1.5 rounded-lg hover:bg-marrom-700 transition" title="Recolher/ampliar menu" aria-label="Menu">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <span class="font-semibold text-sm md:text-base">Sistema seguro • Financeiro</span>
     </div>
-    <div class="flex items-center gap-2 md:gap-4">
-        <span id="currentDateHeader" class="hidden lg:inline text-sm text-marrom-100 opacity-90"></span>
+    <div class="flex items-center gap-3">
+        <span id="currentDateHeader" class="hidden md:inline text-sm text-marrom-100"></span>
         <div class="relative" id="notifWrap">
-            <button onclick="toggleNotifications()" class="p-2 rounded-full hover:bg-marrom-700 transition relative" title="Notificações">
-                <i data-i="bell"></i>
+            <button onclick="toggleNotifications()" class="p-2 rounded-full hover:bg-marrom-700 transition relative" aria-label="Notificações">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 <span id="notifBadge" class="absolute top-1 right-1 bg-amber-600 text-white text-[10px] w-4 h-4 rounded-full items-center justify-center font-bold hidden">0</span>
             </button>
-            <div id="notifDropdown" class="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] bg-white rounded-xl shadow-xl border border-marrom-100 text-marrom-900 hidden z-50 p-3">
-                <h4 class="text-xs font-bold uppercase text-marrom-600 mb-2">Notificações e Alertas</h4>
+            <div id="notifDropdown" class="absolute right-0 mt-2 w-72 md:w-80 bg-white rounded-xl shadow-xl border border-marrom-100 text-marrom-900 hidden z-50 p-3">
+                <h4 class="text-sm font-bold text-marrom-600 mb-2">Notificações e alertas</h4>
                 <div id="notifList" class="space-y-2 max-h-60 overflow-y-auto text-xs"></div>
             </div>
         </div>
-        <button onclick="logout()" class="text-xs bg-marrom-700 hover:bg-marrom-900 px-3 py-1.5 rounded-lg transition font-medium">Trocar Usuário</button>
+        <button onclick="logout()" class="text-xs bg-marrom-700 hover:bg-marrom-900 px-3 py-1.5 rounded-lg transition font-medium">Trocar usuário</button>
     </div>
 </header>
 
-<div class="flex flex-1 min-h-0 overflow-hidden">
-    <!-- MENU -->
-    <aside id="sidebar" class="bg-marrom-800 text-marrom-100 w-64 shrink-0 transition-all duration-300 flex flex-col justify-between shadow-inner overflow-y-auto">
-        <div class="p-4 space-y-4">
+<div class="flex flex-1 overflow-hidden">
+    <aside id="sidebar" class="bg-marrom-800 text-marrom-100 w-64 transition-all duration-300 flex flex-col justify-between shadow-inner flex-shrink-0 overflow-y-auto">
+        <div class="p-3 space-y-4">
             <div class="flex items-center gap-3 p-2 bg-marrom-700 rounded-xl">
-                <div class="w-10 h-10 shrink-0 rounded-full bg-marrom-600 flex items-center justify-center font-bold text-white text-lg shadow"><span id="userInitial">U</span></div>
+                <div class="w-10 h-10 rounded-full bg-marrom-600 flex items-center justify-center font-bold text-white text-lg shadow flex-shrink-0"><span id="userInitial">U</span></div>
                 <div class="overflow-hidden sidebar-text">
                     <h4 id="userNameDisplay" class="font-bold text-sm text-white truncate">Usuário</h4>
-                    <span id="userSenhaDisplay" class="block text-[11px] text-marrom-300 truncate"></span>
-                    <span class="text-[11px] text-emerald-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Online</span>
+                    <span class="text-[11px] text-emerald-300">● Online</span>
                 </div>
             </div>
-            <nav class="space-y-1">
-                <button onclick="switchTab('renda')" class="nav-btn active" data-tab="renda"><i data-i="renda"></i><span class="sidebar-text">Renda</span></button>
-                <button onclick="switchTab('entradas')" class="nav-btn" data-tab="entradas"><i data-i="entradas"></i><span class="sidebar-text">Entradas</span></button>
-                <button onclick="switchTab('dividas')" class="nav-btn" data-tab="dividas"><i data-i="dividas"></i><span class="sidebar-text">Dívidas fixas</span></button>
-                <button onclick="switchTab('gastos')" class="nav-btn" data-tab="gastos"><i data-i="gastos"></i><span class="sidebar-text">Gastos</span></button>
-                <button onclick="switchTab('cartoes')" class="nav-btn" data-tab="cartoes"><i data-i="cartoes"></i><span class="sidebar-text">Cartões</span></button>
-                <button onclick="switchTab('auditoria')" class="nav-btn" data-tab="auditoria"><i data-i="auditoria"></i><span class="sidebar-text">Auditoria</span></button>
-                <button onclick="openCreateUserModal()" class="nav-btn"><i data-i="addUser"></i><span class="sidebar-text">Adicionar usuário</span></button>
-                <button onclick="switchTab('apagarUsuario')" class="nav-btn" data-tab="apagarUsuario"><i data-i="delUser"></i><span class="sidebar-text">Apagar usuário</span></button>
-            </nav>
+            <nav id="nav" class="space-y-1"></nav>
         </div>
-        <div class="p-4 border-t border-marrom-700 text-xs text-marrom-300 sidebar-text text-center">v2.5 PWA Ativo</div>
+        <div class="p-4 border-t border-marrom-700 text-xs text-marrom-300 sidebar-text text-center">v2.7 PWA ativo</div>
     </aside>
 
-    <!-- CONTEÚDO -->
-    <main class="flex-1 min-w-0 overflow-y-auto p-4 md:p-6 bg-marrom-50">
-
-        <div id="tab-renda" class="tab-content space-y-6">
-            <h1 class="text-2xl font-bold">Renda Mensal</h1>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100">
-                <span class="text-xs font-semibold uppercase text-marrom-600">Salário</span>
-                <div class="flex items-center gap-3 mt-1">
-                    <span id="salarioDisplay" class="text-3xl font-extrabold">R$ 0,00</span>
-                    <button onclick="toggleEditSalario()" class="text-xs bg-marrom-100 text-marrom-800 px-2.5 py-1 rounded-lg hover:bg-marrom-600 hover:text-white transition font-medium">Editar</button>
-                </div>
-                <div id="salarioEditBox" class="hidden mt-3 items-center gap-2">
-                    <input type="number" step="0.01" min="0" id="inputSalario" class="inp !w-40" placeholder="Novo valor">
-                    <button onclick="saveSalario()" class="bg-marrom-800 text-white text-xs px-3 py-2 rounded-lg hover:bg-marrom-900">Salvar</button>
-                </div>
-            </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100">
-                <h2 class="text-lg font-bold mb-4">Seu resumo orçamentário</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div class="stat"><span>Total de Entradas</span><p id="resumoEntradas" class="text-emerald-700">R$ 0,00</p></div>
-                    <div class="stat"><span>Dívidas Fixas (mensal)</span><p id="resumoDividas" class="text-rose-700">R$ 0,00</p></div>
-                    <div class="stat"><span>Total de Gastos</span><p id="resumoGastos" class="text-amber-700">R$ 0,00</p></div>
-                    <div class="stat"><span>Saldo estimado</span><p id="resumoSaldo">R$ 0,00</p></div>
-                </div>
-                <p class="text-[11px] text-marrom-500 mt-3">Saldo = salário + entradas − dívidas fixas − gastos.</p>
-            </div>
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-marrom-50">
+        <div class="mb-4">
+            <button onclick="goBack()" class="inline-flex items-center gap-2 bg-white hover:bg-marrom-100 text-marrom-800 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm border border-marrom-200 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>Voltar
+            </button>
         </div>
-
-        <div id="tab-entradas" class="tab-content space-y-6 hidden">
-            <div class="flex justify-between items-center gap-2">
-                <h1 class="text-2xl font-bold">Entradas de Dinheiro</h1>
-                <button onclick="openModalEntrada()" class="btn"><i data-i="plus"></i> Nova Entrada</button>
-            </div>
-            <div class="card"><table class="tbl">
-                <thead><tr><th>Descrição</th><th>Forma</th><th>Valor</th><th>Data</th><th class="text-right">Ações</th></tr></thead>
-                <tbody id="tabelaEntradasBody"></tbody>
-            </table></div>
-        </div>
-
-        <div id="tab-dividas" class="tab-content space-y-6 hidden">
-            <div class="flex justify-between items-center gap-2">
-                <h1 class="text-2xl font-bold">Dívidas Fixas</h1>
-                <button onclick="openModalDivida()" class="btn"><i data-i="plus"></i> Adicionar Dívida</button>
-            </div>
-            <div class="card"><table class="tbl">
-                <thead><tr><th>Título</th><th>Valor</th><th>Término previsto</th><th class="text-right">Ações</th></tr></thead>
-                <tbody id="tabelaDividasBody"></tbody>
-            </table></div>
-        </div>
-
-        <div id="tab-gastos" class="tab-content space-y-6 hidden">
-            <div class="flex justify-between items-center gap-2">
-                <h1 class="text-2xl font-bold">Gastos</h1>
-                <button onclick="openModalGasto()" class="btn"><i data-i="plus"></i> Registrar Gastos</button>
-            </div>
-            <div class="card"><table class="tbl">
-                <thead><tr><th>Descrição</th><th>Categoria</th><th>Forma</th><th>Valor</th><th>Data</th><th class="text-right">Ações</th></tr></thead>
-                <tbody id="tabelaGastosBody"></tbody>
-            </table></div>
-        </div>
-
-        <div id="tab-cartoes" class="tab-content space-y-6 hidden">
-            <div class="flex justify-between items-center gap-2">
-                <h1 class="text-2xl font-bold">Cartões</h1>
-                <button onclick="openModalCartao()" class="btn"><i data-i="plus"></i> Adicionar Cartão</button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="cartoesGrid"></div>
-        </div>
-
-        <div id="tab-auditoria" class="tab-content space-y-6 hidden">
-            <h1 class="text-2xl font-bold">Auditoria do Sistema</h1>
-            <div class="card"><table class="tbl text-xs">
-                <thead><tr><th>Data</th><th>Hora</th><th>Usuário</th><th>Ação Realizada</th></tr></thead>
-                <tbody id="tabelaAuditoriaBody"></tbody>
-            </table></div>
-        </div>
-
-        <div id="tab-apagarUsuario" class="tab-content space-y-6 hidden">
-            <h1 class="text-2xl font-bold">Apagar Usuário</h1>
-            <div class="card max-w-xl p-6">
-                <p class="text-sm text-marrom-600 mb-4">Selecione o usuário que deseja remover do sistema:</p>
-                <div id="deleteUserList" class="space-y-3"></div>
-            </div>
-        </div>
+        <div id="tabs"></div>
     </main>
 </div>
 
-<!-- MODAL ENTRADA -->
-<div id="modalEntrada" class="modal hidden"><div class="box">
-    <h3 class="text-lg font-bold mb-4">Nova Entrada de Dinheiro</h3>
-    <form id="formEntrada" onsubmit="saveEntrada(event)">
-        <div class="space-y-4">
-            <div><label class="lbl">Descrição</label><input type="text" id="entDesc" required maxlength="80" class="inp"></div>
-            <div><label class="lbl">Forma de Recebimento</label>
-                <select id="entForma" class="inp"><option>Pix</option><option>Dinheiro Físico</option><option>Transferência</option><option>Boleto Bancário</option></select></div>
-            <div><label class="lbl">Valor</label><input type="number" step="0.01" min="0.01" id="entValor" required class="inp"></div>
-            <div><label class="lbl">Data</label><input type="date" id="entData" required class="inp"></div>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-            <button type="button" onclick="hideModal('modalEntrada')" class="btn-cancel">Cancelar</button>
-            <button type="submit" class="btn-ok">Salvar</button>
-        </div>
-    </form>
-</div></div>
-
-<!-- MODAL DÍVIDA -->
-<div id="modalDivida" class="modal hidden"><div class="box">
-    <h3 class="text-lg font-bold mb-4">Adicionar Dívida Fixa</h3>
-    <form id="formDivida" onsubmit="saveDivida(event)">
-        <div class="space-y-4">
-            <div><label class="lbl">Título da Dívida</label><input type="text" id="divTitulo" required maxlength="80" class="inp"></div>
-            <div><label class="lbl">Tipo</label>
-                <div class="flex gap-2">
-                    <button type="button" onclick="setDivTipo('Produto')" id="btnTipoProduto" class="flex-1 py-2 text-xs font-bold rounded-lg border"></button>
-                    <button type="button" onclick="setDivTipo('Serviço')" id="btnTipoServico" class="flex-1 py-2 text-xs font-bold rounded-lg border"></button>
-                </div></div>
-            <div><label class="lbl">Forma de Pagamento</label>
-                <select id="divForma" onchange="handlePayChange('div')" class="inp"><option>Pix</option><option>Dinheiro Físico</option><option>Transferência</option><option>Boleto Bancário</option><option>Cartão</option></select></div>
-            <div id="divCartaoContainer" class="hidden space-y-3">
-                <div><label class="lbl">Selecione o Cartão</label><select id="divCartaoSelect" onchange="handleCardChange('div')" class="inp"></select></div>
-                <div><label class="lbl">Tipo de Cartão</label><select id="divTipoCartao" onchange="refreshParcelado('div')" class="inp"></select></div>
-            </div>
-            <div><label class="lbl">Parcelado?</label>
-                <select id="divParcelado" onchange="refreshParcelado('div')" class="inp"><option>Não</option><option>Sim</option></select></div>
-            <div id="divQtdVezesContainer" class="hidden"><label class="lbl">Número de Vezes (Parcelas)</label>
-                <input type="number" id="divQtdVezes" min="2" max="480" value="2" oninput="calcDividaTermino()" class="inp"></div>
-            <div><label id="lblValorDivida" class="lbl">Valor</label><input type="number" step="0.01" min="0.01" id="divValor" required class="inp"></div>
-            <div><label class="lbl">Data em que começou (1º vencimento)</label><input type="date" id="divData" onchange="calcDividaTermino()" required class="inp"></div>
-            <div id="divTerminoPreview" class="text-xs text-marrom-600 font-medium bg-marrom-50 p-2 rounded-lg hidden"></div>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-            <button type="button" onclick="hideModal('modalDivida')" class="btn-cancel">Cancelar</button>
-            <button type="submit" class="btn-ok">Salvar</button>
-        </div>
-    </form>
-</div></div>
-
-<!-- MODAL GASTO -->
-<div id="modalGasto" class="modal hidden"><div class="box">
-    <h3 class="text-lg font-bold mb-4">Registrar Gasto</h3>
-    <form id="formGasto" onsubmit="saveGasto(event)">
-        <div class="space-y-4">
-            <div><label class="lbl">Descrição</label><input type="text" id="gastoDesc" required maxlength="80" class="inp"></div>
-            <div><label class="lbl">Categoria</label>
-                <select id="gastoCat" class="inp"><option>Alimentação</option><option>Saúde</option><option>Lazer</option><option>Transporte</option><option>Outros</option></select></div>
-            <div><label class="lbl">Forma de Pagamento</label>
-                <select id="gastoForma" onchange="handlePayChange('gasto')" class="inp"><option>Pix</option><option>Dinheiro Físico</option><option>Transferência</option><option>Boleto Bancário</option><option>Cartão</option></select></div>
-            <div id="gastoCartaoContainer" class="hidden space-y-3">
-                <div><label class="lbl">Selecione o Cartão</label><select id="gastoCartaoSelect" onchange="handleCardChange('gasto')" class="inp"></select></div>
-                <div><label class="lbl">Tipo de Cartão</label><select id="gastoTipoCartao" onchange="refreshParcelado('gasto')" class="inp"></select></div>
-            </div>
-            <div><label class="lbl">Parcelado?</label>
-                <select id="gastoParcelado" onchange="refreshParcelado('gasto')" class="inp"><option>Não</option><option>Sim</option></select></div>
-            <div id="gastoQtdVezesContainer" class="hidden"><label class="lbl">Número de Vezes</label>
-                <input type="number" id="gastoQtdVezes" min="2" max="480" value="2" class="inp"></div>
-            <div><label id="lblValorGasto" class="lbl">Valor Total à Vista</label><input type="number" step="0.01" min="0.01" id="gastoValor" required class="inp"></div>
-            <div><label class="lbl">Data</label><input type="date" id="gastoData" required class="inp"></div>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-            <button type="button" onclick="hideModal('modalGasto')" class="btn-cancel">Cancelar</button>
-            <button type="submit" class="btn-ok">Salvar</button>
-        </div>
-    </form>
-</div></div>
-
-<!-- MODAL CARTÃO -->
-<div id="modalCartao" class="modal hidden"><div class="box">
-    <h3 class="text-lg font-bold mb-4">Adicionar Cartão</h3>
-    <form id="formCartao" onsubmit="saveCartao(event)">
-        <div class="space-y-4">
-            <div><label class="lbl">Nome do Cartão</label><input type="text" id="cartaoNome" required maxlength="40" placeholder="Ex: Nubank Platinum" class="inp"></div>
-            <div><label class="lbl">Banco</label><input type="text" id="cartaoBanco" required maxlength="40" placeholder="Ex: Nubank" class="inp"></div>
-            <div><label class="lbl">Tipo</label>
-                <select id="cartaoTipo" class="inp"><option>Crédito e Débito</option><option>Apenas Crédito</option><option>Apenas Débito</option></select></div>
-            <div><label class="lbl">Final (4 dígitos)</label><input type="text" id="cartaoFinal" maxlength="4" pattern="\d{4}" inputmode="numeric" required placeholder="1234" class="inp"></div>
-            <div><label class="lbl">Limite (R$)</label><input type="number" step="0.01" min="0" id="cartaoLimite" required class="inp"></div>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-            <button type="button" onclick="hideModal('modalCartao')" class="btn-cancel">Cancelar</button>
-            <button type="submit" class="btn-ok">Salvar</button>
-        </div>
-    </form>
-</div></div>
-
-<!-- MODAL SENHA (login) -->
-<div id="modalSenha" class="modal hidden"><div class="box max-w-sm">
-    <h3 id="senhaTitle" class="text-lg font-bold mb-1">Entrar</h3>
-    <p id="senhaHint" class="text-sm text-marrom-600 mb-4"></p>
-    <form onsubmit="submitSenha(event)">
-        <div class="space-y-3">
-            <div><label class="lbl">Senha</label><input type="password" id="senhaInput" required minlength="4" maxlength="30" autocomplete="off" class="inp"></div>
-            <div id="senhaConfirmWrap" class="hidden"><label class="lbl">Confirme a senha</label><input type="password" id="senhaConfirm" maxlength="30" autocomplete="off" class="inp"></div>
-            <p id="senhaErro" class="text-xs text-rose-700 font-medium hidden"></p>
-        </div>
-        <div class="flex justify-end gap-2 mt-6">
-            <button type="button" onclick="hideModal('modalSenha')" class="btn-cancel">Cancelar</button>
-            <button type="submit" class="btn-ok">Entrar</button>
-        </div>
-    </form>
-</div></div>
-
-<!-- MODAL CONFIRMAÇÃO / AVISO DO SISTEMA -->
-<div id="modalConfirm" class="modal hidden" style="z-index:70"><div class="box max-w-sm">
-    <h3 id="confirmTitle" class="text-lg font-bold mb-2">Confirmação</h3>
-    <p id="confirmMsg" class="text-sm text-marrom-700 mb-6"></p>
-    <div class="flex justify-end gap-2">
-        <button type="button" onclick="closeConfirm(false)" class="btn-cancel">Cancelar</button>
-        <button type="button" id="confirmOk" onclick="closeConfirm(true)" class="px-4 py-2 text-sm bg-rose-600 text-white rounded-lg hover:bg-rose-700 font-medium">Confirmar</button>
-    </div>
-</div></div>
-<div id="modalAviso" class="modal hidden" style="z-index:70"><div class="box max-w-sm">
-    <h3 id="avisoTitle" class="text-lg font-bold mb-2">Aviso</h3>
-    <p id="avisoMsg" class="text-sm text-marrom-700 mb-6"></p>
-    <div class="flex justify-end"><button type="button" onclick="hideModal('modalAviso')" class="btn-ok">OK</button></div>
-</div></div>
+<div id="modals"></div>
 
 <script>
-    // ---------- Utilitários ----------
-    const $ = id => document.getElementById(id);
-    const KEY = 'sistema_financeiro_db';
-    const brl = n => (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    const pad = n => String(n).padStart(2, '0');
-    const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
-    const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
-    const fmtISO = s => s ? s.split('-').reverse().join('/') : '-';
-    const addMonths = (date, n) => {
-        const d = new Date(date.getFullYear(), date.getMonth() + n, 1);
-        const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-        d.setDate(Math.min(date.getDate(), last));
-        return d;
-    };
-    const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+    /* ============ DADOS ============ */
+    const KEY='sistema_financeiro_db';
+    const BLANK={usuarios:[],currentUser:null,salarios:{},entradas:{},dividas:{},gastos:{},cartoes:{},auditoria:[]};
+    let db;
+    try{db={...BLANK,...(JSON.parse(localStorage.getItem(KEY))||{})}}catch(e){db={...BLANK}}
+    db.currentUser=null;
+    let currentTab='renda',previousTab='renda',divTipo='Produto';
 
-    const ICONS = {
-        plus: 'M12 4v16m8-8H4', menu: 'M4 6h16M4 12h16M4 18h16',
-        bell: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
-        renda: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-        entradas: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
-        dividas: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-        gastos: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z',
-        cartoes: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
-        auditoria: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-        addUser: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z',
-        delUser: 'M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6',
-        trash: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
-    };
-    const icon = (n, c = 'w-5 h-5') => `<svg class="${c} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${ICONS[n]}"/></svg>`;
+    const $=id=>document.getElementById(id);
+    const U=()=>db.currentUser;
+    const list=k=>(db[k][U()]||[]);
+    const saveData=()=>{try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('Não foi possível salvar os dados neste navegador.')}};
+    const fmt=v=>(Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const uid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const today=()=>iso(new Date());
+    const fdate=s=>s?s.split('-').reverse().join('/'):'—';
+    function addMonths(s,n){const[y,m,d]=s.split('-').map(Number);const dt=new Date(y,m-1+n,1);const last=new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate();dt.setDate(Math.min(d,last));return iso(dt)}
+    const isActive=d=>!d.termino||d.termino>=today();
 
-    function showModal(id) { $(id).style.display = 'flex'; }
-    let confirmResolve = null;
-    function hideModal(id) {
-        $(id).style.display = 'none';
-        if (id === 'modalConfirm' && confirmResolve) { const f = confirmResolve; confirmResolve = null; f(false); }
+    function logAuditoria(acao){
+        const n=new Date();
+        db.auditoria.push({data:n.toLocaleDateString('pt-BR'),hora:n.toLocaleTimeString('pt-BR'),usuario:U()||'—',acao});
+        if(db.auditoria.length>500)db.auditoria=db.auditoria.slice(-500);
+        saveData();
     }
-    function confirmar(msg, titulo = 'Confirmação', okTxt = 'Confirmar') {
-        return new Promise(res => {
-            if (confirmResolve) confirmResolve(false);
-            confirmResolve = res;
-            $('confirmTitle').innerText = titulo; $('confirmMsg').innerText = msg; $('confirmOk').innerText = okTxt;
-            showModal('modalConfirm');
+
+    /* ============ UI ESTÁTICA GERADA ============ */
+    const IN='w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-marrom-600';
+    const LB='block text-xs font-semibold text-marrom-700 mb-1';
+    const BTN='bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition';
+    const fld=(l,h)=>`<div><label class="${LB}">${l}</label>${h}</div>`;
+    const inp=(id,type='text',x='')=>`<input id="${id}" type="${type}" ${x} class="${IN}">`;
+    const sel=(id,opts,x='')=>`<select id="${id}" ${x} class="${IN}">${opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
+    const FORMAS=['Pix','Dinheiro Físico','Transferência','Boleto Bancário','Cartão'];
+
+    const NAV=[['renda','💰','Renda'],['entradas','📈','Entradas'],['dividas','📋','Dívidas fixas'],['gastos','🛒','Gastos'],['cartoes','💳','Cartões'],['auditoria','🧾','Auditoria'],['addUser','➕','Adicionar usuário'],['apagarUsuario','🗑️','Apagar usuário']];
+    const TABS={
+        entradas:['Entradas de Dinheiro','Nova Entrada','modalEntrada'],
+        dividas:['Dívidas Fixas','Adicionar Dívida','modalDivida'],
+        gastos:['Gastos','Registrar Gasto','modalGasto'],
+        cartoes:['Cartões','Adicionar Cartão','modalCartao'],
+        auditoria:['Auditoria do Sistema']
+    };
+
+    function modal(id,title,body,sub){
+        return `<div id="${id}" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto border border-marrom-100">
+  <h3 class="text-lg font-bold mb-4 font-title">${title}</h3>
+  <form onsubmit="${sub}(event)"><div class="space-y-4">${body}</div>
+  <div class="flex justify-end gap-2 mt-6"><button type="button" onclick="closeM('${id}')" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
+  <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button></div></form></div></div>`;
+    }
+    const payFields=p=>`
+${fld('Forma de pagamento',sel(p+'Forma',FORMAS,`onchange="formUpd('${p}')"`))}
+<div id="${p}CartaoBox" class="hidden space-y-3">
+  ${fld('Cartão',`<select id="${p}Cartao" onchange="formUpd('${p}')" class="${IN}"></select>`)}
+  ${fld('Tipo de cartão',sel(p+'TipoCartao',['Crédito','Débito'],`onchange="formUpd('${p}')"`))}
+</div>
+<div id="${p}ParcBox">${fld('Parcelado?',sel(p+'Parc',['Não','Sim'],`onchange="formUpd('${p}')"`))}</div>
+<div id="${p}QtdBox" class="hidden">${fld('Número de vezes (parcelas)',inp(p+'Qtd','number',`min="1" value="1" oninput="formUpd('${p}')"`))}</div>
+<div><label id="${p}Lbl" class="${LB}">Valor</label>${inp(p+'Valor','number',`step="0.01" min="0.01" required oninput="formUpd('${p}')"`)}</div>
+${fld(p==='div'?'Data em que começou':'Data',inp(p+'Data','date',`required onchange="formUpd('${p}')"`))}
+<div id="${p}Preview" class="hidden text-xs text-marrom-700 font-medium bg-marrom-50 p-2 rounded-lg"></div>`;
+
+    function buildUI(){
+        $('nav').innerHTML=NAV.map(([id,ic,t])=>`<button onclick="${id==='addUser'?"openM('createUserModal')":`switchTab('${id}')`}" ${id!=='addUser'?`data-tab="${id}"`:''} class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200"><span class="w-5 text-center flex-shrink-0">${ic}</span><span class="sidebar-text">${t}</span></button>`).join('');
+
+        let h=`<div id="tab-renda" class="tab-content space-y-6">
+  <div class="flex flex-col md:flex-row justify-between md:items-center gap-4"><h1 class="text-2xl font-bold font-title">Renda mensal</h1>
+  <div class="flex flex-wrap gap-2"><button onclick="exportExcel('geral')" class="bg-emerald-800 hover:bg-emerald-900 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow">📊 Relatório geral Excel</button>
+  <button onclick="exportPDF('geral')" class="bg-rose-800 hover:bg-rose-900 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow">📄 Relatório geral PDF</button></div></div>
+  <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100">
+    <span class="text-sm font-semibold text-marrom-600">Salário</span>
+    <div class="flex items-center gap-3 mt-1"><span id="salarioDisplay" class="text-3xl font-extrabold">R$ 0,00</span>
+    <button onclick="toggleEditSalario()" class="text-xs bg-marrom-100 text-marrom-800 px-2.5 py-1 rounded-lg hover:bg-marrom-600 hover:text-white transition font-medium">Editar</button></div>
+    <div id="salarioEditBox" class="hidden mt-3 items-center gap-2"><input type="number" step="0.01" min="0" id="inputSalario" class="px-3 py-1.5 border border-marrom-200 rounded-lg text-sm w-40" placeholder="Novo valor">
+    <button onclick="saveSalario()" class="bg-marrom-800 text-white text-xs px-3 py-2 rounded-lg hover:bg-marrom-900">Salvar</button></div>
+  </div>
+  <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100"><h2 class="text-lg font-bold mb-4 font-title">Seu resumo orçamentário</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    ${[['Total de entradas','resumoEntradas','text-emerald-700'],['Dívidas fixas (por mês)','resumoDividas','text-rose-700'],['Total de gastos','resumoGastos','text-amber-700'],['Saldo estimado','resumoSaldo','text-marrom-900']].map(([l,i,c])=>`<div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100"><span class="text-xs font-semibold text-marrom-600">${l}</span><p id="${i}" class="text-xl font-bold ${c} mt-1">R$ 0,00</p></div>`).join('')}
+  </div><p class="text-xs text-marrom-500 mt-3">Saldo estimado = salário + entradas − gastos − dívidas fixas do mês.</p></div></div>`;
+
+        for(const k in TABS){
+            const[t,addL,addM]=TABS[k];
+            h+=`<div id="tab-${k}" class="tab-content space-y-6 hidden"><div class="flex flex-wrap justify-between items-center gap-2"><h1 class="text-2xl font-bold font-title">${t}</h1><div class="flex flex-wrap gap-2">
+    <button onclick="exportExcel('${k}')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">Exportar Excel</button>
+    <button onclick="exportPDF('${k}')" class="bg-rose-700 hover:bg-rose-800 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">Exportar PDF</button>
+    ${addM?`<button onclick="openM('${addM}')" class="${BTN}">+ ${addL}</button>`:''}</div></div><div id="body-${k}"></div></div>`;
+        }
+        h+=`<div id="tab-apagarUsuario" class="tab-content space-y-6 hidden"><h1 class="text-2xl font-bold font-title">Apagar usuário</h1>
+  <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 p-6 max-w-xl"><p class="text-sm text-marrom-600 mb-4">Selecione o usuário que deseja remover. Todos os dados dele serão apagados.</p><div id="deleteUserList" class="space-y-3"></div></div></div>`;
+        $('tabs').innerHTML=h;
+
+        $('modals').innerHTML=
+            modal('createUserModal','Cadastrar novo usuário',fld('Nome do usuário',inp('newUserName','text','required maxlength="40"')),'handleCreateUser')+
+            modal('modalEntrada','Nova entrada de dinheiro',fld('Descrição',inp('entDesc','text','required'))+fld('Forma de recebimento',sel('entForma',FORMAS.slice(0,4)))+fld('Valor (R$)',inp('entValor','number','step="0.01" min="0.01" required'))+fld('Data',inp('entData','date','required')),'saveEntrada')+
+            modal('modalDivida','Adicionar dívida fixa',fld('Título da dívida',inp('divTitulo','text','required'))+
+                `<div><label class="${LB}">Tipo</label><div class="flex gap-2"><button type="button" onclick="setDivTipo('Produto')" id="btnTipoProduto" class="flex-1 py-2 text-xs font-bold rounded-lg border">Produto</button><button type="button" onclick="setDivTipo('Serviço')" id="btnTipoServico" class="flex-1 py-2 text-xs font-bold rounded-lg border">Serviço</button></div></div>`+payFields('div'),'saveDivida')+
+            modal('modalGasto','Registrar gasto',fld('Descrição',inp('gastoDesc','text','required'))+fld('Categoria',sel('gastoCat',['Alimentação','Saúde','Lazer','Transporte','Outros']))+payFields('gasto'),'saveGasto')+
+            modal('modalCartao','Adicionar cartão',fld('Nome do cartão',inp('cartaoNome','text','required placeholder="Ex: Nubank Platinum"'))+fld('Banco',inp('cartaoBanco','text','required placeholder="Ex: Nubank"'))+fld('Tipo',sel('cartaoTipo',['Crédito e Débito','Apenas Crédito','Apenas Débito']))+fld('Final (4 dígitos)',inp('cartaoFinal','text','required maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="1234"'))+fld('Limite (R$)',inp('cartaoLimite','number','step="0.01" min="0" required')),'saveCartao');
+    }
+
+    /* ============ MODAIS ============ */
+    function openM(id){
+        const m=$(id);
+        m.querySelector('form')?.reset();
+        m.querySelectorAll('input[type=date]').forEach(i=>i.value=today());
+        m.classList.remove('hidden');m.classList.add('flex');
+        if(id==='modalDivida'){setDivTipo('Produto');formUpd('div')}
+        if(id==='modalGasto')formUpd('gasto');
+        const f=m.querySelector('input:not([type=date])');if(f)setTimeout(()=>f.focus(),50);
+    }
+    function closeM(id){const m=$(id);m.classList.add('hidden');m.classList.remove('flex')}
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('#modals > div.flex').forEach(m=>closeM(m.id))});
+    document.addEventListener('click',e=>{if(!$('notifWrap').contains(e.target))$('notifDropdown').classList.add('hidden')});
+
+    function setDivTipo(t){
+        divTipo=t;
+        const on='flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white';
+        const off='flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800';
+        $('btnTipoProduto').className=t==='Produto'?on:off;
+        $('btnTipoServico').className=t==='Serviço'?on:off;
+    }
+
+    /* Atualiza campos dinâmicos dos formulários de dívida (p='div') e gasto (p='gasto') */
+    function formUpd(p){
+        const isCard=$(p+'Forma').value==='Cartão';
+        $(p+'CartaoBox').classList.toggle('hidden',!isCard);
+        if(isCard){
+            const s=$(p+'Cartao'),cur=s.value,cards=list('cartoes');
+            s.innerHTML=cards.map(c=>`<option value="${c.id}">${esc(c.nome)} •${esc(c.final)}</option>`).join('')||'<option value="">Nenhum cartão cadastrado</option>';
+            if(cur&&cards.some(c=>c.id===cur))s.value=cur;
+            const c=cards.find(x=>x.id===s.value),tp=$(p+'TipoCartao'),cur2=tp.value;
+            const opts=c?(c.tipo==='Apenas Crédito'?['Crédito']:c.tipo==='Apenas Débito'?['Débito']:['Crédito','Débito']):['Crédito','Débito'];
+            tp.innerHTML=opts.map(o=>`<option>${o}</option>`).join('');
+            if(opts.includes(cur2))tp.value=cur2;
+        }
+        const deb=isCard&&$(p+'TipoCartao').value==='Débito';
+        $(p+'ParcBox').classList.toggle('hidden',deb);
+        if(deb)$(p+'Parc').value='Não';
+        const par=$(p+'Parc').value==='Sim';
+        $(p+'QtdBox').classList.toggle('hidden',!par);
+        $(p+'Lbl').textContent=par?'Valor de cada parcela (R$)':(p==='gasto'?'Valor total à vista (R$)':'Valor mensal (R$)');
+        const pv=$(p+'Preview'),v=parseFloat($(p+'Valor').value),q=Math.max(1,parseInt($(p+'Qtd').value)||1),d=$(p+'Data').value;
+        let txt='';
+        if(par&&v>0)txt=`${q}x de ${fmt(v)} = total de ${fmt(v*q)}`;
+        if(p==='div'&&par&&d)txt+=(txt?' • ':'')+`Término previsto: ${fdate(addMonths(d,q))}`;
+        pv.textContent=txt;pv.classList.toggle('hidden',!txt);
+    }
+
+    function collectPay(p){
+        const forma=$(p+'Forma').value,isCard=forma==='Cartão';
+        let card=null,tipoC='';
+        if(isCard){
+            card=list('cartoes').find(c=>c.id===$(p+'Cartao').value);
+            if(!card){alert('Cadastre um cartão na aba Cartões antes de usar essa forma de pagamento.');return null}
+            tipoC=$(p+'TipoCartao').value;
+        }
+        const par=!$(p+'ParcBox').classList.contains('hidden')&&$(p+'Parc').value==='Sim';
+        const qtd=par?Math.max(1,parseInt($(p+'Qtd').value)||1):1;
+        const v=parseFloat($(p+'Valor').value);
+        if(!(v>0)){alert('Informe um valor maior que zero.');return null}
+        return{forma:isCard?`Cartão ${card.nome} •${card.final} (${tipoC})`:forma,cartaoId:card?card.id:null,tipoCartao:tipoC,parcelado:par,parcelas:qtd,valorParcela:v,valor:+(v*qtd).toFixed(2),data:$(p+'Data').value};
+    }
+
+    /* ============ USUÁRIOS / NAVEGAÇÃO ============ */
+    function renderLoginScreen(){
+        const l=$('userSelectList');l.innerHTML='';
+        if(!db.usuarios.length){l.innerHTML='<p class="text-sm text-white/90 text-center py-2">Nenhum usuário cadastrado. Crie um abaixo.</p>';return}
+        db.usuarios.forEach(u=>{
+            const b=document.createElement('button');
+            b.className='w-full text-left p-4 rounded-2xl bg-white/90 hover:bg-white text-marrom-900 border border-white/40 font-semibold text-base flex items-center justify-between transition shadow-md';
+            b.innerHTML=`<span class="flex items-center gap-3"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block"></span>${esc(u)}</span><span class="text-marrom-700">›</span>`;
+            b.onclick=()=>loginUser(u);
+            l.appendChild(b);
         });
     }
-    function closeConfirm(r) { const f = confirmResolve; confirmResolve = null; hideModal('modalConfirm'); if (f) f(r); }
-    function aviso(msg, titulo = 'Aviso') { $('avisoTitle').innerText = titulo; $('avisoMsg').innerText = msg; showModal('modalAviso'); }
-
-    // ---------- Estado ----------
-    const defaultDB = () => ({ usuarios: [], currentUser: null, salarios: {}, entradas: {}, dividas: {}, gastos: {}, cartoes: {}, auditoria: [], notificados: {}, senhas: {} });
-    function loadDB() {
-        try {
-            const raw = JSON.parse(localStorage.getItem(KEY));
-            if (raw && typeof raw === 'object') return { ...defaultDB(), ...raw, currentUser: null };
-        } catch (e) { console.warn('Dados corrompidos, reiniciando base.', e); }
-        return defaultDB();
-    }
-    let db = loadDB();
-    let currentDivTipo = 'Produto';
-
-    function saveData() {
-        try { localStorage.setItem(KEY, JSON.stringify(db)); }
-        catch (e) { aviso('Não foi possível salvar os dados (armazenamento cheio ou bloqueado).'); }
-    }
-
-    // ---------- Inicialização ----------
-    window.addEventListener('load', () => {
-        document.querySelectorAll('i[data-i]').forEach(el => { el.outerHTML = icon(el.dataset.i, el.dataset.c); });
-        $('currentDateHeader').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        setDivTipo('Produto');
-        if (window.innerWidth < 768) setSidebar(true);
-        showModal('loginScreen');
-        renderLoginScreen();
-        setInterval(checkNearDueDates, 60 * 60 * 1000);
-    });
-    document.addEventListener('click', e => {
-        if (!$('notifWrap').contains(e.target)) $('notifDropdown').classList.add('hidden');
-        if (e.target.classList.contains('modal') && e.target.id !== 'loginScreen') hideModal(e.target.id);
-    });
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') document.querySelectorAll('.modal').forEach(m => { if (m.id !== 'loginScreen') hideModal(m.id); });
-    });
-
-    // ---------- Usuários ----------
-    function renderLoginScreen() {
-        const list = $('userSelectList');
-        list.innerHTML = '';
-        if (db.usuarios.length === 0) {
-            list.innerHTML = '<p class="text-sm text-marrom-500 text-center py-2">Nenhum usuário cadastrado. Crie um abaixo.</p>';
-            return;
-        }
-        db.usuarios.forEach(user => {
-            const btn = document.createElement('button');
-            btn.className = 'w-full text-left p-3 rounded-xl border border-marrom-200 hover:bg-marrom-50 font-medium text-sm flex items-center justify-between transition';
-            const span = document.createElement('span');
-            span.textContent = user;
-            btn.appendChild(span);
-            btn.insertAdjacentHTML('beforeend', icon('plus', 'w-4 h-4').replace(ICONS.plus, 'M9 5l7 7-7 7'));
-            btn.onclick = () => pedirSenha(user);
-            list.appendChild(btn);
-        });
-    }
-
-    let pendingUser = null;
-    function pedirSenha(user) {
-        pendingUser = user;
-        const novo = !own(db.senhas, user) || !db.senhas[user];
-        $('senhaTitle').innerText = novo ? 'Defina uma senha' : 'Entrar';
-        $('senhaHint').innerText = novo ? `O usuário "${user}" ainda não tem senha. Crie uma (mín. 4 caracteres).` : `Digite a senha de "${user}".`;
-        $('senhaConfirmWrap').classList.toggle('hidden', !novo);
-        $('senhaConfirm').required = novo;
-        $('senhaInput').value = ''; $('senhaConfirm').value = '';
-        $('senhaErro').classList.add('hidden');
-        showModal('modalSenha');
-        setTimeout(() => $('senhaInput').focus(), 50);
-    }
-    function submitSenha(e) {
-        e.preventDefault();
-        const user = pendingUser, senha = $('senhaInput').value;
-        const novo = !own(db.senhas, user) || !db.senhas[user];
-        const erro = m => { $('senhaErro').innerText = m; $('senhaErro').classList.remove('hidden'); };
-        if (novo) {
-            if (senha.length < 4) return erro('A senha precisa ter pelo menos 4 caracteres.');
-            if (senha !== $('senhaConfirm').value) return erro('As senhas não conferem.');
-            db.senhas[user] = senha; saveData();
-        } else if (senha !== db.senhas[user]) {
-            $('senhaInput').value = '';
-            return erro('Senha incorreta.');
-        }
-        hideModal('modalSenha');
-        loginUser(user);
-    }
-
-    function loginUser(userName) {
-        db.currentUser = userName;
-        ['salarios'].forEach(k => { if (!own(db[k], userName)) db[k][userName] = 0; });
-        ['entradas', 'dividas', 'gastos', 'cartoes'].forEach(k => { if (!own(db[k], userName)) db[k][userName] = []; });
-        hideModal('loginScreen');
-        $('userNameDisplay').innerText = userName;
-        $('userInitial').innerText = userName.charAt(0).toUpperCase();
-        $('userSenhaDisplay').innerText = 'Senha: ' + (db.senhas[userName] || '');
-        switchTab('renda');
+    function loginUser(u){
+        db.currentUser=u;
+        ['salarios'].forEach(k=>{if(typeof db[k][u]!=='number')db[k][u]=0});
+        ['entradas','dividas','gastos','cartoes'].forEach(k=>{if(!Array.isArray(db[k][u]))db[k][u]=[]});
+        $('loginScreen').classList.add('hidden');
+        $('userNameDisplay').textContent=u;$('userInitial').textContent=u.charAt(0).toUpperCase();
         logAuditoria('Fez login no sistema');
+        currentTab=previousTab='renda';switchTab('renda');
         refreshAllViews();
-        if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission().then(checkNearDueDates).catch(() => {});
     }
-
-    function logout(silent) {
-        if (!silent) logAuditoria('Saiu do sistema');
-        db.currentUser = null;
-        saveData();
+    function logout(){
+        if(U())logAuditoria('Saiu do sistema');
+        db.currentUser=null;saveData();
         $('notifDropdown').classList.add('hidden');
-        document.querySelectorAll('.modal').forEach(m => hideModal(m.id));
-        showModal('loginScreen');
+        $('loginScreen').classList.remove('hidden');renderLoginScreen();
+    }
+    function handleCreateUser(e){
+        e.preventDefault();
+        const n=$('newUserName').value.trim();if(!n)return;
+        if(db.usuarios.some(u=>u.toLowerCase()===n.toLowerCase())){alert('Usuário já existe!');return}
+        db.usuarios.push(n);
+        db.auditoria.push({data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR'),usuario:U()||'—',acao:`Cadastrou o usuário "${n}"`});
+        saveData();closeM('createUserModal');renderLoginScreen();
+        if(U()){renderAuditoria();if(currentTab==='apagarUsuario')renderDeleteUserList()}
+    }
+    function renderDeleteUserList(){
+        const l=$('deleteUserList');
+        if(!db.usuarios.length){l.innerHTML='<p class="text-sm text-marrom-500">Nenhum usuário cadastrado.</p>';return}
+        l.innerHTML='';
+        db.usuarios.forEach(u=>{
+            const r=document.createElement('div');
+            r.className='flex items-center justify-between p-3 bg-marrom-50 rounded-xl border border-marrom-100';
+            r.innerHTML=`<span class="font-medium text-sm">${esc(u)}${u===U()?' <span class="text-xs text-marrom-500">(você)</span>':''}</span>`;
+            const b=document.createElement('button');
+            b.className='text-xs bg-rose-700 hover:bg-rose-800 text-white px-3 py-1.5 rounded-lg transition';b.textContent='Apagar';
+            b.onclick=()=>deleteUser(u);r.appendChild(b);l.appendChild(r);
+        });
+    }
+    function deleteUser(u){
+        if(!confirm(`Apagar o usuário "${u}" e todos os seus dados? Esta ação não pode ser desfeita.`))return;
+        const self=u===U();
+        db.auditoria.push({data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR'),usuario:U()||'—',acao:`Apagou o usuário "${u}"`});
+        db.usuarios=db.usuarios.filter(x=>x!==u);
+        ['salarios','entradas','dividas','gastos','cartoes'].forEach(k=>delete db[k][u]);
+        saveData();
+        if(self){logout();return}
+        renderDeleteUserList();renderAuditoria();
+    }
+    function switchTab(id){
+        if(id!==currentTab){previousTab=currentTab;currentTab=id}
+        document.querySelectorAll('.tab-content').forEach(el=>el.classList.add('hidden'));
+        document.querySelectorAll('.nav-btn').forEach(el=>{el.classList.remove('bg-marrom-700','text-white');el.classList.add('text-marrom-200')});
+        $('tab-'+id).classList.remove('hidden');
+        const a=document.querySelector(`[data-tab="${id}"]`);
+        if(a){a.classList.add('bg-marrom-700','text-white');a.classList.remove('text-marrom-200')}
+        if(id==='apagarUsuario')renderDeleteUserList();
+        $('tabs').parentElement.scrollTop=0;
+    }
+    function goBack(){switchTab(previousTab)}
+    function toggleSidebar(){
+        const s=$('sidebar');s.classList.toggle('w-64');s.classList.toggle('w-20');
+        document.querySelectorAll('.sidebar-text').forEach(el=>el.classList.toggle('hidden'));
+    }
+    function toggleNotifications(){
+        $('notifDropdown').classList.toggle('hidden');
+        if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+    }
+
+    /* ============ RENDERIZAÇÃO ============ */
+    function refreshAllViews(){renderRenda();renderEntradas();renderDividas();renderGastos();renderCartoes();renderAuditoria();checkNearDueDates()}
+    const sum=(a,f)=>a.reduce((t,x)=>t+(Number(f?f(x):x)||0),0);
+
+    function renderRenda(){
+        const sal=db.salarios[U()]||0,ent=sum(list('entradas'),e=>e.valor),div=sum(list('dividas').filter(isActive),d=>d.valorParcela),gas=sum(list('gastos'),g=>g.valor);
+        $('salarioDisplay').textContent=fmt(sal);
+        $('resumoEntradas').textContent=fmt(ent);$('resumoDividas').textContent=fmt(div);$('resumoGastos').textContent=fmt(gas);
+        const saldo=sal+ent-gas-div,el=$('resumoSaldo');el.textContent=fmt(saldo);
+        el.className='text-xl font-bold mt-1 '+(saldo<0?'text-rose-700':'text-emerald-700');
+    }
+    function toggleEditSalario(){
+        const b=$('salarioEditBox');b.classList.toggle('hidden');b.classList.toggle('flex');
+        $('inputSalario').value=db.salarios[U()]||0;
+    }
+    function saveSalario(){
+        const v=parseFloat($('inputSalario').value);
+        if(!(v>=0)){alert('Informe um valor válido.');return}
+        db.salarios[U()]=v;toggleEditSalario();
+        logAuditoria(`Atualizou o salário mensal para ${fmt(v)}`);renderRenda();
+    }
+
+    function table(heads,rows,right=true){
+        if(!rows.length)return `<div class="bg-white rounded-2xl border border-marrom-100 p-8 text-center text-sm text-marrom-500">Nada por aqui ainda.</div>`;
+        return `<div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-x-auto"><table class="w-full text-left border-collapse text-sm"><thead><tr class="bg-marrom-100 text-marrom-800 text-xs font-semibold">${heads.map((h,i)=>`<th class="p-4 whitespace-nowrap ${right&&i===heads.length-1?'text-right':''}">${h}</th>`).join('')}</tr></thead><tbody class="divide-y divide-marrom-100">${rows.map(r=>`<tr class="hover:bg-marrom-50">${r.map((c,i)=>`<td class="p-4 ${right&&i===r.length-1?'text-right':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    }
+    const delBtn=(k,id)=>`<button onclick="del('${k}','${id}')" class="text-xs text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-lg">Excluir</button>`;
+
+    function renderEntradas(){
+        const r=[...list('entradas')].sort((a,b)=>b.data.localeCompare(a.data)).map(e=>[esc(e.desc),esc(e.forma),`<b class="text-emerald-700">${fmt(e.valor)}</b>`,fdate(e.data),delBtn('entradas',e.id)]);
+        $('body-entradas').innerHTML=table(['Descrição','Forma','Valor','Data','Ações'],r);
+    }
+    function renderDividas(){
+        const r=[...list('dividas')].sort((a,b)=>b.data.localeCompare(a.data)).map(d=>{
+            const val=d.parcelado?`${d.parcelas}x de ${fmt(d.valorParcela)}<br><span class="text-xs text-marrom-500">Total ${fmt(d.valor)}</span>`:`${fmt(d.valorParcela)}<span class="text-xs text-marrom-500"> /mês</span>`;
+            const fim=d.termino?fdate(d.termino)+(isActive(d)?'':' <span class="text-xs text-emerald-700">(quitada)</span>'):'Recorrente';
+            return[`<b>${esc(d.titulo)}</b><br><span class="text-xs text-marrom-500">${esc(d.tipo)}</span>`,esc(d.forma),val,fdate(d.data),fim,delBtn('dividas',d.id)];
+        });
+        $('body-dividas').innerHTML=table(['Título','Forma','Valor','Início','Término previsto','Ações'],r);
+    }
+    function renderGastos(){
+        const r=[...list('gastos')].sort((a,b)=>b.data.localeCompare(a.data)).map(g=>[esc(g.desc),esc(g.cat),esc(g.forma),g.parcelado?`<b class="text-amber-700">${fmt(g.valor)}</b><br><span class="text-xs text-marrom-500">${g.parcelas}x de ${fmt(g.valorParcela)}</span>`:`<b class="text-amber-700">${fmt(g.valor)}</b>`,fdate(g.data),delBtn('gastos',g.id)]);
+        $('body-gastos').innerHTML=table(['Descrição','Categoria','Forma','Valor','Data','Ações'],r);
+    }
+    function cardUsage(c){
+        const g=sum(list('gastos').filter(x=>x.cartaoId===c.id&&x.tipoCartao==='Crédito'),x=>x.valor);
+        const d=sum(list('dividas').filter(x=>x.cartaoId===c.id&&x.tipoCartao==='Crédito'&&isActive(x)),x=>x.valor);
+        return g+d;
+    }
+    function renderCartoes(){
+        const cs=list('cartoes'),box=$('body-cartoes');
+        if(!cs.length){box.innerHTML=table([],[]);return}
+        box.innerHTML=`<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${cs.map(c=>{
+            const u=cardUsage(c),pct=c.limite>0?Math.min(100,u/c.limite*100):0,cor=pct>=90?'bg-rose-600':pct>=70?'bg-amber-600':'bg-emerald-600';
+            const cred=c.tipo!=='Apenas Débito';
+            return `<div class="bg-marrom-800 text-white rounded-2xl p-5 shadow-md"><div class="flex justify-between items-start"><div><h3 class="font-bold font-title text-lg">${esc(c.nome)}</h3><p class="text-xs text-marrom-200">${esc(c.banco)} • ${esc(c.tipo)}</p></div><button onclick="del('cartoes','${c.id}')" class="text-xs text-marrom-200 hover:text-white">Excluir</button></div>
+    <p class="mt-4 tracking-widest text-sm">•••• •••• •••• ${esc(c.final)}</p>
+    ${cred?`<div class="mt-4 h-2 bg-marrom-900 rounded-full overflow-hidden"><div class="${cor} h-2" style="width:${pct}%"></div></div>
+    <div class="flex justify-between text-xs mt-2 text-marrom-100"><span>Usado ${fmt(u)}</span><span>Limite ${fmt(c.limite)}</span></div>
+    <p class="text-xs mt-1 text-marrom-200">Disponível ${fmt(Math.max(0,c.limite-u))}</p>`:`<p class="text-xs mt-4 text-marrom-200">Limite informado: ${fmt(c.limite)}</p>`}</div>`;
+        }).join('')}</div>`;
+    }
+    function renderAuditoria(){
+        const r=[...db.auditoria].reverse().map(a=>[esc(a.data),esc(a.hora),esc(a.usuario),esc(a.acao)]);
+        $('body-auditoria').innerHTML=table(['Data','Hora','Usuário','Ação realizada'],r,false);
+    }
+
+    /* ============ CRUD ============ */
+    function saveEntrada(e){
+        e.preventDefault();
+        const v=parseFloat($('entValor').value);if(!(v>0)){alert('Informe um valor maior que zero.');return}
+        const x={id:uid(),desc:$('entDesc').value.trim(),forma:$('entForma').value,valor:v,data:$('entData').value};
+        db.entradas[U()].push(x);closeM('modalEntrada');
+        logAuditoria(`Registrou entrada "${x.desc}" de ${fmt(v)}`);refreshAllViews();
+    }
+    function saveDivida(e){
+        e.preventDefault();
+        const p=collectPay('div');if(!p)return;
+        const d={id:uid(),titulo:$('divTitulo').value.trim(),tipo:divTipo,...p,termino:p.parcelado?addMonths(p.data,p.parcelas):null};
+        db.dividas[U()].push(d);closeM('modalDivida');
+        logAuditoria(`Adicionou dívida fixa "${d.titulo}" (${fmt(d.valorParcela)}${d.parcelado?` x ${d.parcelas}`:'/mês'})`);refreshAllViews();
+    }
+    function saveGasto(e){
+        e.preventDefault();
+        const p=collectPay('gasto');if(!p)return;
+        const g={id:uid(),desc:$('gastoDesc').value.trim(),cat:$('gastoCat').value,...p};
+        db.gastos[U()].push(g);closeM('modalGasto');
+        logAuditoria(`Registrou gasto "${g.desc}" de ${fmt(g.valor)}`);refreshAllViews();
+    }
+    function saveCartao(e){
+        e.preventDefault();
+        const f=$('cartaoFinal').value.trim();
+        if(!/^\d{4}$/.test(f)){alert('O final do cartão deve ter exatamente 4 números.');return}
+        const c={id:uid(),nome:$('cartaoNome').value.trim(),banco:$('cartaoBanco').value.trim(),tipo:$('cartaoTipo').value,final:f,limite:parseFloat($('cartaoLimite').value)||0};
+        db.cartoes[U()].push(c);closeM('modalCartao');
+        logAuditoria(`Adicionou o cartão "${c.nome}" •${c.final}`);refreshAllViews();
+    }
+    function del(k,id){
+        const item=list(k).find(x=>x.id===id);if(!item)return;
+        const nome=item.desc||item.titulo||item.nome;
+        if(!confirm(`Excluir "${nome}"?`))return;
+        db[k][U()]=list(k).filter(x=>x.id!==id);
+        logAuditoria(`Excluiu ${k.slice(0,-1)=== 'cartoe'?'cartão':k.replace(/s$/,'')} "${nome}"`);refreshAllViews();
+    }
+
+    /* ============ ALERTAS ============ */
+    function checkNearDueDates(){
+        const al=[],t=today(),lim=addMonths(t,1);
+        list('dividas').forEach(d=>{
+            if(!d.termino)return;
+            if(d.termino<t)return;
+            if(d.termino<=lim)al.push(`📋 A dívida "${esc(d.titulo)}" termina em ${fdate(d.termino)}.`);
+        });
+        list('cartoes').forEach(c=>{
+            if(c.tipo==='Apenas Débito'||!(c.limite>0))return;
+            const pct=cardUsage(c)/c.limite*100;
+            if(pct>=80)al.push(`💳 O cartão "${esc(c.nome)}" usou ${pct.toFixed(0)}% do limite.`);
+        });
+        const s=(db.salarios[U()]||0)+sum(list('entradas'),e=>e.valor)-sum(list('gastos'),g=>g.valor)-sum(list('dividas').filter(isActive),d=>d.valorParcela);
+        if(s<0)al.push('⚠️ Seus gastos e dívidas superam sua renda.');
+        $('notifList').innerHTML=al.length?al.map(a=>`<div class="p-2 bg-marrom-50 rounded-lg border border-marrom-100">${a}</div>`).join(''):'<p class="text-marrom-500 text-center py-4">Nenhuma notificação nova.</p>';
+        const b=$('notifBadge');b.textContent=al.length;b.classList.toggle('hidden',!al.length);b.classList.toggle('flex',!!al.length);
+        if(al.length&&'Notification' in window&&Notification.permission==='granted'&&!sessionStorage.getItem('notif_'+U())){
+            sessionStorage.setItem('notif_'+U(),'1');
+            try{new Notification('Sistema Financeiro Família',{body:al[0].replace(/&quot;/g,'"').replace(/&amp;/g,'&')})}catch(e){}
+        }
+    }
+
+    /* ============ EXPORTAÇÃO ============ */
+    function dataset(k){
+        const T={
+            entradas:{n:'Entradas',h:['Descrição','Forma','Valor','Data'],r:list('entradas').map(e=>[e.desc,e.forma,e.valor,fdate(e.data)])},
+            dividas:{n:'Dívidas Fixas',h:['Título','Tipo','Forma','Parcelas','Valor da parcela','Valor total','Início','Término'],r:list('dividas').map(d=>[d.titulo,d.tipo,d.forma,d.parcelado?d.parcelas+'x':'Mensal',d.valorParcela,d.valor,fdate(d.data),d.termino?fdate(d.termino):'Recorrente'])},
+            gastos:{n:'Gastos',h:['Descrição','Categoria','Forma','Parcelas','Valor total','Data'],r:list('gastos').map(g=>[g.desc,g.cat,g.forma,g.parcelado?g.parcelas+'x':'À vista',g.valor,fdate(g.data)])},
+            cartoes:{n:'Cartões',h:['Nome','Banco','Tipo','Final','Limite','Usado','Disponível'],r:list('cartoes').map(c=>{const u=cardUsage(c);return[c.nome,c.banco,c.tipo,c.final,c.limite,u,Math.max(0,c.limite-u)]})},
+            auditoria:{n:'Auditoria',h:['Data','Hora','Usuário','Ação realizada'],r:db.auditoria.map(a=>[a.data,a.hora,a.usuario,a.acao]).reverse()}
+        };
+        if(k==='geral'){
+            const sal=db.salarios[U()]||0,ent=sum(list('entradas'),e=>e.valor),div=sum(list('dividas').filter(isActive),d=>d.valorParcela),gas=sum(list('gastos'),g=>g.valor);
+            return[{n:'Resumo',h:['Item','Valor'],r:[['Salário',sal],['Total de entradas',ent],['Dívidas fixas (por mês)',div],['Total de gastos',gas],['Saldo estimado',sal+ent-gas-div]]},T.entradas,T.dividas,T.gastos,T.cartoes];
+        }
+        return[T[k]];
+    }
+    function exportExcel(k){
+        if(!window.XLSX){alert('A biblioteca de Excel não carregou. Verifique sua conexão com a internet e recarregue a página.');return}
+        const wb=XLSX.utils.book_new();
+        dataset(k).forEach(s=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([s.h,...s.r]),s.n.slice(0,31)));
+        XLSX.writeFile(wb,`financeiro_${k}_${today()}.xlsx`);
+        logAuditoria(`Exportou relatório Excel (${k})`);
+    }
+    function exportPDF(k){
+        const J=window.jspdf&&window.jspdf.jsPDF;
+        if(!J){alert('A biblioteca de PDF não carregou. Verifique sua conexão com a internet e recarregue a página.');return}
+        const doc=new J();
+        if(typeof doc.autoTable!=='function'){alert('O módulo de tabelas do PDF não carregou. Recarregue a página.');return}
+        doc.setFontSize(16);doc.text('Sistema Financeiro Família',14,16);
+        doc.setFontSize(10);doc.text(`Usuário: ${U()}  •  Emitido em ${new Date().toLocaleString('pt-BR')}`,14,23);
+        let y=30;
+        dataset(k).forEach(s=>{
+            if(y>240){doc.addPage();y=16}
+            doc.setFontSize(12);doc.text(s.n,14,y);
+            doc.autoTable({head:[s.h],body:s.r.map(r=>r.map(c=>typeof c==='number'?fmt(c):String(c))),startY:y+3,styles:{fontSize:8},headStyles:{fillColor:[93,64,55]}});
+            y=doc.lastAutoTable.finalY+12;
+        });
+        doc.save(`financeiro_${k}_${today()}.pdf`);
+        logAuditoria(`Exportou relatório PDF (${k})`);
+    }
+
+    /* ============ INICIALIZAÇÃO ============ */
+    window.addEventListener('load',()=>{
+        buildUI();
+        $('currentDateHeader').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
         renderLoginScreen();
-    }
-
-    function openCreateUserModal() { showModal('createUserModal'); setTimeout(() => $('newUserName').focus(), 50); }
-    function closeCreateUserModal() { hideModal('createUserModal'); $('newUserName').value = ''; $('newUserPass').value = ''; }
-
-    function handleCreateUser(e) {
-        e.preventDefault();
-        const name = $('newUserName').value.trim(), senha = $('newUserPass').value;
-        if (!name) return;
-        if (name === '__proto__') { aviso('Nome inválido.'); return; }
-        if (db.usuarios.some(u => u.toLowerCase() === name.toLowerCase())) { aviso('Usuário já existe!'); return; }
-        if (senha.length < 4) { aviso('A senha precisa ter pelo menos 4 caracteres.'); return; }
-        db.usuarios.push(name);
-        db.senhas[name] = senha;
-        saveData();
-        closeCreateUserModal();
-        if (db.currentUser) {
-            logAuditoria(`Cadastrou o usuário: ${name}`);
-            renderAuditoria();
-            renderDeleteUserList();
-        } else {
-            renderLoginScreen();
-            loginUser(name);
+        if(innerWidth<768)toggleSidebar();
+        if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+            navigator.serviceWorker.register('./sw.js').catch(err=>console.log('Falha Service Worker:',err));
         }
-    }
-
-    function renderDeleteUserList() {
-        const c = $('deleteUserList');
-        c.innerHTML = '';
-        if (db.usuarios.length === 0) { c.innerHTML = '<p class="text-sm text-marrom-500">Nenhum usuário cadastrado.</p>'; return; }
-        db.usuarios.forEach(user => {
-            const div = document.createElement('div');
-            div.className = 'flex items-center justify-between gap-2 p-3 border border-marrom-200 rounded-xl bg-marrom-50';
-            div.innerHTML = `<span class="font-medium text-sm truncate">${esc(user)}</span>
-      <button class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">Apagar</button>`;
-            div.querySelector('button').onclick = () => deleteUser(user);
-            c.appendChild(div);
-        });
-    }
-
-    async function deleteUser(user) {
-        if (!(await confirmar(`Deseja realmente apagar o usuário ${user} e todos os seus dados?`, 'Confirmação', 'Remover'))) return;
-        logAuditoria(`Apagou o usuário: ${user}`);
-        db.usuarios = db.usuarios.filter(u => u !== user);
-        ['salarios', 'entradas', 'dividas', 'gastos', 'cartoes', 'senhas'].forEach(k => delete db[k][user]);
-        saveData();
-        if (db.currentUser === user) { logout(true); return; }
-        renderDeleteUserList();
-        renderAuditoria();
-    }
-
-    // ---------- Navegação ----------
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-        $('tab-' + tabId).classList.remove('hidden');
-        const btn = document.querySelector(`[data-tab="${tabId}"]`);
-        if (btn) btn.classList.add('active');
-        if (tabId === 'apagarUsuario') renderDeleteUserList();
-        if (window.innerWidth < 768) setSidebar(true);
-    }
-    function setSidebar(collapsed) {
-        const sb = $('sidebar');
-        sb.classList.toggle('w-64', !collapsed);
-        sb.classList.toggle('w-20', collapsed);
-        document.querySelectorAll('.sidebar-text').forEach(el => el.classList.toggle('hidden', collapsed));
-    }
-    function toggleSidebar() { setSidebar($('sidebar').classList.contains('w-64')); }
-
-    function refreshAllViews() {
-        renderRenda(); renderEntradas(); renderDividas(); renderGastos(); renderCartoes(); renderAuditoria(); checkNearDueDates();
-    }
-
-    // ---------- Renda ----------
-    function renderRenda() {
-        const u = db.currentUser;
-        const salario = db.salarios[u] || 0;
-        const sum = arr => (arr || []).reduce((a, i) => a + (Number(i.valor) || 0), 0);
-        const ent = sum(db.entradas[u]), div = sum(db.dividas[u]), gas = sum(db.gastos[u]);
-        const saldo = salario + ent - div - gas;
-        $('salarioDisplay').innerText = brl(salario);
-        $('resumoEntradas').innerText = brl(ent);
-        $('resumoDividas').innerText = brl(div);
-        $('resumoGastos').innerText = brl(gas);
-        const s = $('resumoSaldo');
-        s.innerText = brl(saldo);
-        s.className = 'text-xl font-bold mt-1 ' + (saldo < 0 ? 'text-rose-700' : 'text-emerald-700');
-    }
-    function toggleEditSalario() {
-        const box = $('salarioEditBox');
-        box.classList.toggle('flex');
-        box.classList.toggle('hidden');
-        $('inputSalario').value = db.salarios[db.currentUser] || 0;
-    }
-    function saveSalario() {
-        const val = parseFloat($('inputSalario').value);
-        if (isNaN(val) || val < 0) { aviso('Informe um valor válido.'); return; }
-        db.salarios[db.currentUser] = val;
-        saveData(); toggleEditSalario(); renderRenda();
-        logAuditoria('Atualizou o salário mensal'); renderAuditoria();
-    }
-
-    // ---------- Entradas ----------
-    function openModalEntrada() { $('formEntrada').reset(); $('entData').value = todayISO(); showModal('modalEntrada'); }
-    function saveEntrada(e) {
-        e.preventDefault();
-        const desc = $('entDesc').value.trim(), forma = $('entForma').value, valor = parseFloat($('entValor').value), data = $('entData').value;
-        if (!desc || !(valor > 0)) { aviso('Preencha descrição e um valor maior que zero.'); return; }
-        db.entradas[db.currentUser].push({ id: Date.now(), desc, forma, valor, data });
-        saveData(); hideModal('modalEntrada'); renderEntradas(); renderRenda();
-        logAuditoria(`Adicionou entrada: ${desc} (${brl(valor)})`); renderAuditoria();
-    }
-    function renderEntradas() {
-        const tb = $('tabelaEntradasBody');
-        const list = [...(db.entradas[db.currentUser] || [])].sort((a, b) => b.data.localeCompare(a.data));
-        if (!list.length) { tb.innerHTML = '<tr><td colspan="5" class="text-center text-marrom-500">Nenhuma entrada cadastrada.</td></tr>'; return; }
-        tb.innerHTML = list.map(i => `<tr>
-    <td class="font-medium">${esc(i.desc)}</td><td class="text-marrom-600">${esc(i.forma)}</td>
-    <td class="font-bold text-emerald-700">${brl(i.valor)}</td><td class="text-marrom-600">${fmtISO(i.data)}</td>
-    <td class="text-right"><button onclick="deleteEntrada(${i.id})" class="del" title="Remover">${icon('trash', 'w-4 h-4')}</button></td></tr>`).join('');
-    }
-    async function deleteEntrada(id) {
-        if (!(await confirmar('Deseja realmente remover essa entrada?', 'Confirmação', 'Remover'))) return;
-        db.entradas[db.currentUser] = db.entradas[db.currentUser].filter(i => i.id !== id);
-        saveData(); renderEntradas(); renderRenda();
-        logAuditoria('Removeu uma entrada de dinheiro'); renderAuditoria();
-    }
-
-    // ---------- Pagamento (compartilhado: dívidas e gastos) ----------
-    function updateCartaoSelects() {
-        const cartoes = db.cartoes[db.currentUser] || [];
-        ['divCartaoSelect', 'gastoCartaoSelect'].forEach(id => {
-            $(id).innerHTML = cartoes.length
-                ? cartoes.map(c => `<option value="${c.id}">${esc(c.nome)} - ${esc(c.banco)} (•••• ${esc(c.final)})</option>`).join('')
-                : '<option value="">Cadastre um cartão primeiro</option>';
-        });
-    }
-    function handlePayChange(p) {
-        const isCard = $(p + 'Forma').value === 'Cartão';
-        $(p + 'CartaoContainer').classList.toggle('hidden', !isCard);
-        if (isCard) handleCardChange(p); else refreshParcelado(p);
-    }
-    function handleCardChange(p) {
-        const card = (db.cartoes[db.currentUser] || []).find(c => String(c.id) === $(p + 'CartaoSelect').value);
-        const allowed = !card ? ['Crédito', 'Débito'] : card.tipo === 'Apenas Crédito' ? ['Crédito'] : card.tipo === 'Apenas Débito' ? ['Débito'] : ['Crédito', 'Débito'];
-        const sel = $(p + 'TipoCartao'), prev = sel.value;
-        sel.innerHTML = allowed.map(t => `<option value="${t}">${t}</option>`).join('');
-        if (allowed.includes(prev)) sel.value = prev;
-        refreshParcelado(p);
-    }
-    function refreshParcelado(p) {
-        const forma = $(p + 'Forma').value;
-        const isCard = forma === 'Cartão';
-        const block = forma === 'Pix' || (isCard && $(p + 'TipoCartao').value === 'Débito');
-        const sel = $(p + 'Parcelado');
-        if (block) sel.value = 'Não';
-        sel.disabled = block;
-        const sim = sel.value === 'Sim';
-        $(p + 'QtdVezesContainer').classList.toggle('hidden', !sim);
-        if (p === 'div') { $('lblValorDivida').innerText = sim ? 'Valor da Parcela' : 'Valor'; calcDividaTermino(); }
-        else $('lblValorGasto').innerText = sim ? 'Valor Total' : 'Valor Total à Vista';
-    }
-    function lerPagamento(p) {
-        const forma = $(p + 'Forma').value;
-        const out = { forma, cartaoLabel: null, tipoCartao: null, parcelado: 'Não', vezes: 1 };
-        if (forma === 'Cartão') {
-            const card = (db.cartoes[db.currentUser] || []).find(c => String(c.id) === $(p + 'CartaoSelect').value);
-            if (!card) { aviso('Cadastre e selecione um cartão primeiro.'); return null; }
-            out.cartaoLabel = `${card.nome} (${card.banco}) •••• ${card.final}`;
-            out.tipoCartao = $(p + 'TipoCartao').value;
-        }
-        if ($(p + 'Parcelado').value === 'Sim') {
-            const v = parseInt($(p + 'QtdVezes').value, 10);
-            if (!(v >= 2)) { aviso('Informe pelo menos 2 parcelas.'); return null; }
-            out.parcelado = 'Sim'; out.vezes = v;
-        }
-        return out;
-    }
-    function pagamentoLabel(i) {
-        let s = i.cartaoLabel ? `Cartão ${i.tipoCartao} • ${i.cartaoLabel}` : i.forma;
-        if (i.parcelado === 'Sim') s += ` • ${i.vezes}x`;
-        return s;
-    }
-
-    // ---------- Dívidas ----------
-    function terminoDivida(d) {
-        if (d.parcelado !== 'Sim' || !d.data || !(d.vezes > 1)) return null;
-        return addMonths(parseISO(d.data), d.vezes - 1);
-    }
-    function calcDividaTermino() {
-        const data = $('divData').value, sim = $('divParcelado').value === 'Sim';
-        const vezes = parseInt($('divQtdVezes').value, 10) || 0;
-        const pv = $('divTerminoPreview');
-        if (data && sim && vezes > 1) {
-            pv.innerText = `Previsão de término (última parcela): ${addMonths(parseISO(data), vezes - 1).toLocaleDateString('pt-BR')}`;
-            pv.classList.remove('hidden');
-        } else pv.classList.add('hidden');
-    }
-    function setDivTipo(tipo) {
-        currentDivTipo = tipo;
-        const on = 'border-marrom-600 bg-marrom-800 text-white', off = 'border-marrom-200 text-marrom-800 bg-white';
-        const bp = $('btnTipoProduto'), bs = $('btnTipoServico');
-        bp.className = 'flex-1 py-2 text-xs font-bold rounded-lg border ' + (tipo === 'Produto' ? on : off);
-        bs.className = 'flex-1 py-2 text-xs font-bold rounded-lg border ' + (tipo === 'Serviço' ? on : off);
-        bp.innerText = 'Produto'; bs.innerText = 'Serviço';
-    }
-    function openModalDivida() {
-        $('formDivida').reset(); setDivTipo('Produto');
-        $('divData').value = todayISO();
-        updateCartaoSelects(); handlePayChange('div');
-        showModal('modalDivida');
-    }
-    function saveDivida(e) {
-        e.preventDefault();
-        const titulo = $('divTitulo').value.trim(), valor = parseFloat($('divValor').value), data = $('divData').value;
-        if (!titulo || !(valor > 0) || !data) { aviso('Preencha título, valor (maior que zero) e data.'); return; }
-        const pg = lerPagamento('div');
-        if (!pg) return;
-        db.dividas[db.currentUser].push({ id: Date.now(), titulo, tipo: currentDivTipo, valor, data, ...pg });
-        saveData(); hideModal('modalDivida'); renderDividas(); renderRenda(); checkNearDueDates();
-        logAuditoria(`Adicionou dívida fixa: ${titulo} (${brl(valor)})`); renderAuditoria();
-    }
-    function renderDividas() {
-        const tb = $('tabelaDividasBody');
-        const list = db.dividas[db.currentUser] || [];
-        if (!list.length) { tb.innerHTML = '<tr><td colspan="4" class="text-center text-marrom-500">Nenhuma dívida fixa cadastrada.</td></tr>'; return; }
-        tb.innerHTML = list.map(d => {
-            const t = terminoDivida(d);
-            return `<tr>
-      <td class="font-medium">${esc(d.titulo)}<span class="sub">${esc(d.tipo || '')} • ${esc(pagamentoLabel(d))} • início ${fmtISO(d.data)}</span></td>
-      <td class="font-bold text-rose-700">${brl(d.valor)}${d.parcelado === 'Sim' ? '<span class="sub">por parcela</span>' : '<span class="sub">mensal</span>'}</td>
-      <td class="text-marrom-600">${t ? t.toLocaleDateString('pt-BR') : '-'}</td>
-      <td class="text-right"><button onclick="deleteDivida(${d.id})" class="del" title="Remover">${icon('trash', 'w-4 h-4')}</button></td></tr>`;
-        }).join('');
-    }
-    async function deleteDivida(id) {
-        if (!(await confirmar('Deseja realmente remover essa dívida?', 'Confirmação', 'Remover'))) return;
-        db.dividas[db.currentUser] = db.dividas[db.currentUser].filter(i => i.id !== id);
-        saveData(); renderDividas(); renderRenda(); checkNearDueDates();
-        logAuditoria('Removeu uma dívida fixa'); renderAuditoria();
-    }
-
-    // ---------- Gastos ----------
-    function openModalGasto() {
-        $('formGasto').reset();
-        $('gastoData').value = todayISO();
-        updateCartaoSelects(); handlePayChange('gasto');
-        showModal('modalGasto');
-    }
-    function saveGasto(e) {
-        e.preventDefault();
-        const desc = $('gastoDesc').value.trim(), categoria = $('gastoCat').value, valor = parseFloat($('gastoValor').value), data = $('gastoData').value;
-        if (!desc || !(valor > 0) || !data) { aviso('Preencha descrição, valor (maior que zero) e data.'); return; }
-        const pg = lerPagamento('gasto');
-        if (!pg) return;
-        db.gastos[db.currentUser].push({ id: Date.now(), desc, categoria, valor, data, ...pg });
-        saveData(); hideModal('modalGasto'); renderGastos(); renderRenda();
-        logAuditoria(`Registrou gasto: ${desc} (${brl(valor)})`); renderAuditoria();
-    }
-    function renderGastos() {
-        const tb = $('tabelaGastosBody');
-        const list = [...(db.gastos[db.currentUser] || [])].sort((a, b) => b.data.localeCompare(a.data));
-        if (!list.length) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-marrom-500">Nenhum gasto registrado.</td></tr>'; return; }
-        tb.innerHTML = list.map(i => `<tr>
-    <td class="font-medium">${esc(i.desc)}</td><td class="text-marrom-600">${esc(i.categoria)}</td>
-    <td class="text-marrom-600">${esc(pagamentoLabel(i))}</td>
-    <td class="font-bold text-amber-700">${brl(i.valor)}${i.parcelado === 'Sim' ? `<span class="sub">${i.vezes}x de ${brl(i.valor / i.vezes)}</span>` : ''}</td>
-    <td class="text-marrom-600">${fmtISO(i.data)}</td>
-    <td class="text-right"><button onclick="deleteGasto(${i.id})" class="del" title="Remover">${icon('trash', 'w-4 h-4')}</button></td></tr>`).join('');
-    }
-    async function deleteGasto(id) {
-        if (!(await confirmar('Deseja realmente remover esse gasto?', 'Confirmação', 'Remover'))) return;
-        db.gastos[db.currentUser] = db.gastos[db.currentUser].filter(i => i.id !== id);
-        saveData(); renderGastos(); renderRenda();
-        logAuditoria('Removeu um gasto'); renderAuditoria();
-    }
-
-    // ---------- Cartões ----------
-    function openModalCartao() { $('formCartao').reset(); showModal('modalCartao'); }
-    function saveCartao(e) {
-        e.preventDefault();
-        const nome = $('cartaoNome').value.trim(), banco = $('cartaoBanco').value.trim(), tipo = $('cartaoTipo').value;
-        const final = $('cartaoFinal').value.trim(), limite = parseFloat($('cartaoLimite').value);
-        if (!nome || !banco || !/^\d{4}$/.test(final) || isNaN(limite) || limite < 0) { aviso('Verifique os dados do cartão (final com 4 números).'); return; }
-        db.cartoes[db.currentUser].push({ id: Date.now(), nome, banco, tipo, final, limite });
-        saveData(); hideModal('modalCartao'); renderCartoes();
-        logAuditoria(`Adicionou cartão: ${nome} (${banco})`); renderAuditoria();
-    }
-    function renderCartoes() {
-        const grid = $('cartoesGrid');
-        const list = db.cartoes[db.currentUser] || [];
-        if (!list.length) { grid.innerHTML = '<p class="text-sm text-marrom-500 col-span-full text-center py-4">Nenhum cartão cadastrado.</p>'; return; }
-        grid.innerHTML = list.map(c => `<div class="bg-marrom-800 text-white p-5 rounded-2xl shadow-md flex flex-col justify-between h-44">
-    <div class="flex justify-between items-start">
-      <div class="min-w-0"><span class="text-xs uppercase tracking-wider text-marrom-300">${esc(c.banco)}</span>
-        <h4 class="font-bold text-base truncate">${esc(c.nome)}</h4></div>
-      <button onclick="deleteCartao(${c.id})" class="text-marrom-300 hover:text-white p-1" title="Remover">${icon('trash', 'w-4 h-4')}</button>
-    </div>
-    <div><span class="text-xs text-marrom-300">${esc(c.tipo)}</span>
-      <div class="flex justify-between items-end mt-2">
-        <span class="text-lg font-mono tracking-widest">•••• ${esc(c.final)}</span>
-        <span class="text-xs font-medium">Limite: ${brl(c.limite)}</span></div></div></div>`).join('');
-    }
-    async function deleteCartao(id) {
-        if (!(await confirmar('Certeza que deseja remover esse cartão?', 'Confirmação', 'Remover'))) return;
-        db.cartoes[db.currentUser] = db.cartoes[db.currentUser].filter(i => i.id !== id);
-        saveData(); renderCartoes();
-        logAuditoria('Removeu um cartão'); renderAuditoria();
-    }
-
-    // ---------- Auditoria ----------
-    function logAuditoria(acao) {
-        if (!db.currentUser) return;
-        const agora = new Date();
-        db.auditoria.unshift({ data: agora.toLocaleDateString('pt-BR'), hora: agora.toLocaleTimeString('pt-BR'), usuario: db.currentUser, acao });
-        if (db.auditoria.length > 50) db.auditoria.length = 50;
-        saveData();
-    }
-    function renderAuditoria() {
-        const tb = $('tabelaAuditoriaBody');
-        if (!db.auditoria.length) { tb.innerHTML = '<tr><td colspan="4" class="text-center text-marrom-500">Nenhum registro de auditoria.</td></tr>'; return; }
-        tb.innerHTML = db.auditoria.map(i => `<tr><td class="text-marrom-600">${esc(i.data)}</td><td class="text-marrom-600">${esc(i.hora)}</td>
-    <td class="font-semibold">${esc(i.usuario)}</td><td class="text-marrom-800">${esc(i.acao)}</td></tr>`).join('');
-    }
-
-    // ---------- Notificações ----------
-    function toggleNotifications() { $('notifDropdown').classList.toggle('hidden'); }
-
-    function proximoVencimento(d, hoje) {
-        if (!d.data) return null;
-        const start = parseISO(d.data);
-        const total = d.parcelado === 'Sim' && d.vezes > 1 ? d.vezes : Infinity;
-        let k = 0;
-        if (hoje > start) {
-            k = (hoje.getFullYear() - start.getFullYear()) * 12 + (hoje.getMonth() - start.getMonth());
-            if (addMonths(start, k) < hoje) k++;
-        }
-        if (k >= total) return null;
-        return { date: addMonths(start, k), parcela: k + 1, total };
-    }
-
-    function enviarNotificacao(titulo, corpo) {
-        if (!('Notification' in window) || Notification.permission !== 'granted') return;
-        const fallback = () => { try { new Notification(titulo, { body: corpo, icon: './icon-192.png' }); } catch (e) {} };
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistration()
-                .then(reg => reg ? reg.showNotification(titulo, { body: corpo, icon: './icon-192.png' }) : fallback())
-                .catch(fallback);
-        } else fallback();
-    }
-
-    function checkNearDueDates() {
-        if (!db.currentUser) return;
-        const list = $('notifList'), badge = $('notifBadge');
-        const now = new Date();
-        const hoje = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        list.innerHTML = '';
-        let count = 0;
-        (db.dividas[db.currentUser] || []).forEach(d => {
-            const v = proximoVencimento(d, hoje);
-            if (!v) return;
-            const dias = Math.round((v.date - hoje) / 86400000);
-            if (dias < 0 || dias > 3) return;
-            count++;
-            const quando = dias === 0 ? 'vence hoje' : dias === 1 ? 'vence amanhã' : `vence em ${dias} dias`;
-            const parc = v.total !== Infinity ? ` (parcela ${v.parcela}/${v.total})` : '';
-            const dataTxt = v.date.toLocaleDateString('pt-BR');
-            const item = document.createElement('div');
-            item.className = 'p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-900';
-            item.innerHTML = `<strong>Atenção:</strong> a dívida <em>${esc(d.titulo)}</em>${parc} ${quando} (${dataTxt}).`;
-            list.appendChild(item);
-            const key = `${db.currentUser}|${d.id}|${v.parcela}`;
-            if (!db.notificados[key]) {
-                db.notificados[key] = 1;
-                if (Object.keys(db.notificados).length > 300) db.notificados = { [key]: 1 };
-                saveData();
-                enviarNotificacao('Alerta de Vencimento', `A dívida "${d.titulo}"${parc} ${quando} (${dataTxt}).`);
-            }
-        });
-        if (count) { badge.innerText = count; badge.classList.remove('hidden'); badge.classList.add('flex'); }
-        else {
-            list.innerHTML = '<p class="text-marrom-500 text-center py-2">Nenhuma notificação de vencimento próximo.</p>';
-            badge.classList.add('hidden'); badge.classList.remove('flex');
-        }
-    }
+    });
 </script>
 </body>
 </html>
