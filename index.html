@@ -3,41 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Financeiro Família</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Sistema Financeiro - Família Bembem</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        marrom: {
-                            50: '#fdfbf7',
-                            100: '#f4ede2',
-                            600: '#795548',
-                            700: '#6d4c41',
-                            800: '#5d4037',
-                            900: '#3e2723'
-                        }
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { colors: { marrom: {
+                            50:'#fdfbf7',100:'#f4ede2',200:'#e6d5c3',300:'#c9ad94',500:'#8d6e63',600:'#795548',700:'#6d4c41',800:'#5d4037',900:'#3e2723'
+                        }}}}}
     </script>
-    <!-- SheetJS (XLSX) e jsPDF para exportação -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- PWA Manifest & Meta -->
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="theme-color" content="#5d4037">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('Service Worker registrado:', reg.scope))
-                    .catch((err) => console.log('Falha Service Worker:', err));
+                    .then(r => console.log('Service Worker registrado:', r.scope))
+                    .catch(e => console.log('Falha Service Worker:', e));
             });
         }
     </script>
@@ -45,65 +34,36 @@
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .font-title { font-family: 'Playfair Display', serif; }
-
-        @keyframes waveAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .vintage-wave-bg {
-            background: linear-gradient(135deg, #fdfbf7 0%, #d7ccc8 25%, #8d6e63 50%, #5d4037 75%, #f4ede2 100%);
-            background-size: 300% 300%;
-            animation: waveAnimation 12s ease infinite;
+        /* Tela inicial: foto "fundo.jpg" (mesma pasta) com camada marrom escura; se a foto não existir, fica o marrom */
+        .animated-bg {
+            background: linear-gradient(rgba(62,39,35,.55), rgba(62,39,35,.78)), url('fundo.jpg') center/cover no-repeat, #3e2723;
         }
     </style>
 </head>
 <body class="bg-marrom-50 text-marrom-900 h-screen flex flex-col overflow-hidden">
 
-<!-- TELA INICIAL (LANDING / SELEÇÃO DE USUÁRIO) COM ONDAS VINTAGE MARROM E BRANCO -->
-<div id="loginScreen" class="fixed inset-0 vintage-wave-bg z-50 flex flex-col items-center justify-between p-6">
+<!-- TELA INICIAL -->
+<div id="loginScreen" class="fixed inset-0 animated-bg z-50 flex flex-col items-center justify-between p-6">
     <div class="flex-1 flex flex-col items-center justify-center w-full max-w-md text-center">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-marrom-800 text-white rounded-full text-3xl font-bold mb-4 shadow-2xl border-2 border-white/40 transform hover:scale-105 transition duration-300">
-            SF
-        </div>
-        <h1 class="text-4xl md:text-5xl font-sans font-bold text-marrom-900 mb-3 tracking-tight drop-shadow-sm">
-            Sistema Financeiro Família
-        </h1>
-        <p class="text-sm text-marrom-800 opacity-90 mb-8 font-medium">
-            Organização inteligente e aconchegante para as finanças da sua casa
-        </p>
-
-        <!-- Lista de Usuários Individuais -->
+        <h1 class="text-4xl md:text-5xl font-sans font-bold text-white mb-3 tracking-tight drop-shadow-lg">Sistema Financeiro - Família Bembem</h1>
+        <p class="text-sm text-marrom-100 opacity-90 mb-8 font-light">Organização inteligente e aconchegante para as finanças da sua casa</p>
         <div class="w-full space-y-3">
-            <h3 class="text-xs uppercase tracking-widest font-bold text-marrom-800 mb-3">Selecione seu Usuário</h3>
-            <div id="userSelectList" class="space-y-3 max-h-52 overflow-y-auto pr-1">
-                <!-- Preenchido via JS -->
-            </div>
-
+            <h3 class="text-xs uppercase tracking-widest font-bold text-marrom-100 mb-3">Selecione seu Usuário</h3>
+            <div id="userSelectList" class="space-y-3 max-h-52 overflow-y-auto pr-1"></div>
             <div class="pt-2">
-                <button onclick="showCreateUserModal()" class="w-full bg-marrom-800/80 hover:bg-marrom-900 text-white font-medium py-3 px-4 rounded-2xl transition duration-200 text-sm flex items-center justify-center gap-2 border border-white/30 shadow-md backdrop-blur-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Adicionar Novo Usuário
-                </button>
+                <button onclick="openCreateUserModal()" class="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-3 px-4 rounded-2xl transition duration-200 text-sm flex items-center justify-center gap-2 border border-white/30 shadow-md backdrop-blur-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Adicionar Novo Usuário</button>
             </div>
         </div>
     </div>
-
-    <!-- Rodapé / Direitos Reservados -->
-    <footer class="text-center text-sm font-semibold text-marrom-900 tracking-wider py-4 drop-shadow-sm">
-        Financeira Família Bem-Bem • Todos os direitos reservados
-    </footer>
+    <footer class="text-center text-sm font-semibold text-white/90 tracking-wider py-4 drop-shadow">Financeira Família Bem-Bem • Todos os direitos reservados</footer>
 </div>
 
 <!-- MODAL CRIAR USUÁRIO -->
-<div id="createUserModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+<div id="createUserModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 border border-marrom-100">
         <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Cadastrar Novo Usuário</h3>
-        <form id="formCreateUser" onsubmit="handleCreateUser(event)">
-            <div class="mb-4">
-                <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Nome do Usuário</label>
-                <input type="text" id="newUserName" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-marrom-600 text-sm">
-            </div>
+        <form onsubmit="handleCreateUser(event)">
+            <div class="mb-4"><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Nome do Usuário</label><input type="text" id="newUserName" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
             <div class="flex justify-end gap-2">
                 <button type="button" onclick="closeCreateUserModal()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
                 <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Cadastrar</button>
@@ -121,603 +81,302 @@
         <span class="font-semibold tracking-wide text-sm md:text-base">Sistema seguro • Financeiro</span>
     </div>
     <div class="flex items-center gap-4">
-        <span id="currentDateHeader" class="text-xs md:text-sm text-marrom-100 opacity-90"></span>
+        <span id="currentDateHeader" class="text-xs md:text-sm text-marrom-100 opacity-90 hidden md:inline"></span>
         <div class="relative">
             <button onclick="toggleNotifications()" class="p-2 rounded-full hover:bg-marrom-700 transition relative">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 <span id="notifBadge" class="absolute top-1 right-1 bg-amber-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold hidden">0</span>
             </button>
-            <!-- Dropdown Notificações -->
-            <div id="notifDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-marrom-100 text-marrom-900 hidden z-50 p-3">
+            <div id="notifDropdown" class="absolute right-0 mt-2 w-72 md:w-80 bg-white rounded-xl shadow-xl border border-marrom-100 text-marrom-900 hidden z-50 p-3">
                 <h4 class="text-xs font-bold uppercase text-marrom-600 mb-2">Notificações e Alertas</h4>
-                <div id="notifList" class="space-y-2 max-h-60 overflow-y-auto text-xs">
-                    <p class="text-marrom-500 text-center py-4">Nenhuma notificação nova.</p>
-                </div>
+                <div id="notifList" class="space-y-2 max-h-60 overflow-y-auto text-xs"><p class="text-marrom-500 text-center py-4">Nenhuma notificação nova.</p></div>
             </div>
         </div>
         <button onclick="logout()" class="text-xs bg-marrom-700 hover:bg-marrom-900 px-3 py-1.5 rounded-lg transition font-medium">Trocar Usuário</button>
     </div>
 </header>
 
-<!-- CORPO PRINCIPAL -->
 <div class="flex flex-1 overflow-hidden">
-
     <!-- MENU LATERAL -->
-    <aside id="sidebar" class="bg-marrom-800 text-marrom-100 w-64 transition-all duration-300 flex flex-col justify-between shadow-inner">
+    <aside id="sidebar" class="bg-marrom-800 text-marrom-100 w-64 transition-all duration-300 flex flex-col justify-between shadow-inner flex-shrink-0 overflow-y-auto">
         <div class="p-4 space-y-4">
-            <!-- Perfil sem foto -->
             <div class="flex items-center gap-3 p-2 bg-marrom-700 rounded-xl">
-                <div class="w-10 h-10 rounded-full bg-marrom-600 flex items-center justify-center font-bold text-white text-lg shadow">
-                    <span id="userInitial">U</span>
-                </div>
+                <div class="w-10 h-10 rounded-full bg-marrom-600 flex items-center justify-center font-bold text-white text-lg shadow flex-shrink-0"><span id="userInitial">U</span></div>
                 <div class="overflow-hidden sidebar-text">
                     <h4 id="userNameDisplay" class="font-bold text-sm text-white truncate">Usuário</h4>
                     <span class="text-[11px] text-emerald-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Online</span>
                 </div>
             </div>
-
-            <!-- Navegação -->
             <nav class="space-y-1">
-                <button onclick="switchTab('renda')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-white bg-marrom-700" data-tab="renda">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span class="sidebar-text">Renda</span>
-                </button>
-                <button onclick="switchTab('entradas')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="entradas">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                    <span class="sidebar-text">Entradas</span>
-                </button>
-                <button onclick="switchTab('dividas')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="dividas">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                    <span class="sidebar-text">Dívidas fixas</span>
-                </button>
-                <button onclick="switchTab('gastos')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="gastos">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    <span class="sidebar-text">Gastos</span>
-                </button>
-                <button onclick="switchTab('cartoes')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="cartoes">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    <span class="sidebar-text">Cartões</span>
-                </button>
-                <button onclick="switchTab('auditoria')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="auditoria">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span class="sidebar-text">Auditoria</span>
-                </button>
-                <button onclick="openCreateUserModal()" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                    <span class="sidebar-text">Adicionar usuário</span>
-                </button>
-                <button onclick="switchTab('apagarUsuario')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="apagarUsuario">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"/></svg>
-                    <span class="sidebar-text">Apagar usuário</span>
-                </button>
+                <button onclick="switchTab('renda')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-white bg-marrom-700" data-tab="renda"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="sidebar-text">Renda</span></button>
+                <button onclick="switchTab('entradas')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="entradas"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg><span class="sidebar-text">Entradas</span></button>
+                <button onclick="switchTab('dividas')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="dividas"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span class="sidebar-text">Dívidas fixas</span></button>
+                <button onclick="switchTab('gastos')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="gastos"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg><span class="sidebar-text">Gastos</span></button>
+                <button onclick="switchTab('cartoes')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="cartoes"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg><span class="sidebar-text">Cartões</span></button>
+                <button onclick="switchTab('auditoria')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="auditoria"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span class="sidebar-text">Auditoria</span></button>
+                <button onclick="openCreateUserModal()" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg><span class="sidebar-text">Adicionar usuário</span></button>
+                <button onclick="switchTab('apagarUsuario')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition hover:bg-marrom-700 text-marrom-200" data-tab="apagarUsuario"><svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"/></svg><span class="sidebar-text">Apagar usuário</span></button>
+
             </nav>
         </div>
-        <div class="p-4 border-t border-marrom-700 text-xs text-marrom-300 sidebar-text text-center">
-            v2.6 PWA Ativo
-        </div>
+        <div class="p-4 border-t border-marrom-700 text-xs text-marrom-300 sidebar-text text-center">v2.7 PWA Ativo</div>
     </aside>
 
-    <!-- CONTEÚDO PRINCIPAL COM BOTÃO DE VOLTAR (SETINHA) -->
-    <main class="flex-1 overflow-y-auto p-6 bg-marrom-50 flex flex-col">
-
-        <!-- BARRA DE NAVEGAÇÃO SUPERIOR INTERNA (SETINHA DE VOLTAR) -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-marrom-50 flex flex-col">
         <div class="mb-4 flex items-center justify-between">
             <button onclick="goBackToHome()" class="inline-flex items-center gap-2 bg-white hover:bg-marrom-100 text-marrom-800 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm border border-marrom-200 transition" title="Voltar">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                Voltar
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg> Voltar
             </button>
         </div>
 
-        <!-- ABA RENDA -->
+        <!-- RENDA -->
         <div id="tab-renda" class="tab-content space-y-6">
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center flex-wrap gap-2">
                 <h1 class="text-2xl font-bold text-marrom-900 font-title">Renda Mensal</h1>
-                <div class="flex gap-2 relative">
-                    <!-- Dropdown Excel -->
+                <div class="flex items-center gap-2 relative"><div class="relative inline-block text-left">
+                    <button onclick="toggleDropdown('excelDropdown')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar Excel ▾</button>
+                    <div id="excelDropdown" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                        <button onclick="exportExcel('renda'); toggleDropdown('excelDropdown')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                        <button onclick="exportExcel('geral'); toggleDropdown('excelDropdown')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                    </div></div>
                     <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('excelDropdown')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
-                        <div id="excelDropdown" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportExcel('renda'); toggleDropdown('excelDropdown')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdown')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <!-- Dropdown PDF -->
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('pdfDropdown')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
+                        <button onclick="toggleDropdown('pdfDropdown')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar PDF ▾</button>
                         <div id="pdfDropdown" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
                             <button onclick="exportPDF('renda'); toggleDropdown('pdfDropdown')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
                             <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdown')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
+                        </div></div></div></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100">
+                <span class="text-xs font-semibold uppercase text-marrom-600">Salário</span>
+                <div class="flex items-center gap-3 mt-1">
+                    <span id="salarioDisplay" class="text-3xl font-extrabold text-marrom-900">R$ 0,00</span>
+                    <button onclick="toggleEditSalario()" class="text-xs bg-marrom-100 text-marrom-800 px-2.5 py-1 rounded-lg hover:bg-marrom-600 hover:text-white transition font-medium">Editar</button>
+                </div>
+                <div id="salarioEditBox" class="hidden mt-3 flex items-center gap-2">
+                    <input type="number" step="0.01" id="inputSalario" class="px-3 py-1.5 border border-marrom-200 rounded-lg text-sm w-40" placeholder="Novo valor">
+                    <button onclick="saveSalario()" class="bg-marrom-800 text-white text-xs px-3 py-2 rounded-lg hover:bg-marrom-900">Salvar</button>
                 </div>
             </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100 flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold uppercase text-marrom-600">Salário</span>
-                    <div class="flex items-center gap-3 mt-1">
-                        <span id="salarioDisplay" class="text-3xl font-extrabold text-marrom-900">R$ 0,00</span>
-                        <button onclick="toggleEditSalario()" class="text-xs bg-marrom-100 text-marrom-800 px-2.5 py-1 rounded-lg hover:bg-marrom-600 hover:text-white transition font-medium">Editar</button>
-                    </div>
-                    <div id="salarioEditBox" class="hidden mt-3 flex items-center gap-2">
-                        <input type="number" step="0.01" id="inputSalario" class="px-3 py-1.5 border border-marrom-200 rounded-lg text-sm w-40" placeholder="Novo valor">
-                        <button onclick="saveSalario()" class="bg-marrom-800 text-white text-xs px-3 py-2 rounded-lg hover:bg-marrom-900">Salvar</button>
-                    </div>
-                </div>
-            </div>
-
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-marrom-100">
                 <h2 class="text-lg font-bold text-marrom-900 mb-4 font-title">Seu resumo orçamentário</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100">
-                        <span class="text-xs font-semibold text-marrom-600 uppercase">Total de Entradas</span>
-                        <p id="resumoEntradas" class="text-xl font-bold text-emerald-700 mt-1">R$ 0,00</p>
-                    </div>
-                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100">
-                        <span class="text-xs font-semibold text-marrom-600 uppercase">Total de Dívidas Fixas</span>
-                        <p id="resumoDividas" class="text-xl font-bold text-rose-700 mt-1">R$ 0,00</p>
-                    </div>
-                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100">
-                        <span class="text-xs font-semibold text-marrom-600 uppercase">Total de Gastos</span>
-                        <p id="resumoGastos" class="text-xl font-bold text-amber-700 mt-1">R$ 0,00</p>
-                    </div>
+                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100"><span class="text-xs font-semibold text-marrom-600 uppercase">Total de Entradas</span><p id="resumoEntradas" class="text-xl font-bold text-emerald-700 mt-1">R$ 0,00</p></div>
+                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100"><span class="text-xs font-semibold text-marrom-600 uppercase">Total de Dívidas Fixas</span><p id="resumoDividas" class="text-xl font-bold text-rose-700 mt-1">R$ 0,00</p></div>
+                    <div class="p-4 bg-marrom-50 rounded-xl border border-marrom-100"><span class="text-xs font-semibold text-marrom-600 uppercase">Total de Gastos</span><p id="resumoGastos" class="text-xl font-bold text-amber-700 mt-1">R$ 0,00</p></div>
                 </div>
             </div>
         </div>
 
-        <!-- ABA ENTRADAS -->
-        <div id="tab-entradas" class="tab-content space-y-6 hidden">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-marrom-900 font-title">Entradas de Dinheiro</h1>
-                <div class="flex items-center gap-2">
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('excelDropdownEnt')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
-                        <div id="excelDropdownEnt" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportExcel('entradas'); toggleDropdown('excelDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('pdfDropdownEnt')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
-                        <div id="pdfDropdownEnt" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportPDF('entradas'); toggleDropdown('pdfDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <button onclick="openModalEntrada()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Nova Entrada
-                    </button>
-                </div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-hidden">
-                <table id="tableEntradas" class="w-full text-left border-collapse text-sm">
-                    <thead>
-                    <tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold">
-                        <th class="p-4">Descrição</th>
-                        <th class="p-4">Forma</th>
-                        <th class="p-4">Valor</th>
-                        <th class="p-4">Data</th>
-                        <th class="p-4 text-right no-export">Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tabelaEntradasBody" class="divide-y divide-marrom-100">
-                    <!-- Preenchido via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <div id="tab-entradas" class="tab-content space-y-6 hidden"><div class="flex justify-between items-center flex-wrap gap-2">
+            <h1 class="text-2xl font-bold text-marrom-900 font-title">Entradas de Dinheiro</h1>
+            <div class="flex items-center gap-2 relative"><div class="relative inline-block text-left">
+                <button onclick="toggleDropdown('excelDropdownEnt')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar Excel ▾</button>
+                <div id="excelDropdownEnt" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                    <button onclick="exportExcel('entradas'); toggleDropdown('excelDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                    <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                </div></div>
+                <div class="relative inline-block text-left">
+                    <button onclick="toggleDropdown('pdfDropdownEnt')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar PDF ▾</button>
+                    <div id="pdfDropdownEnt" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                        <button onclick="exportPDF('entradas'); toggleDropdown('pdfDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                        <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownEnt')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                    </div></div><button onclick="openModalEntrada()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Nova Entrada</button></div></div><div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-x-auto"><table id="tableEntradas" class="w-full text-left border-collapse text-sm">
+            <thead><tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold"><th class="p-4">Descrição</th><th class="p-4">Forma</th><th class="p-4">Valor</th><th class="p-4">Data</th><th class="p-4 text-right no-export">Ações</th></tr></thead>
+            <tbody id="tabelaEntradasBody" class="divide-y divide-marrom-100 "></tbody></table></div></div>
+        <div id="tab-dividas" class="tab-content space-y-6 hidden"><div class="flex justify-between items-center flex-wrap gap-2">
+            <h1 class="text-2xl font-bold text-marrom-900 font-title">Dívidas Fixas</h1>
+            <div class="flex items-center gap-2 relative"><div class="relative inline-block text-left">
+                <button onclick="toggleDropdown('excelDropdownDiv')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar Excel ▾</button>
+                <div id="excelDropdownDiv" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                    <button onclick="exportExcel('dividas'); toggleDropdown('excelDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                    <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                </div></div>
+                <div class="relative inline-block text-left">
+                    <button onclick="toggleDropdown('pdfDropdownDiv')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar PDF ▾</button>
+                    <div id="pdfDropdownDiv" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                        <button onclick="exportPDF('dividas'); toggleDropdown('pdfDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                        <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                    </div></div><button onclick="openModalDivida()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Adicionar Dívida</button></div></div><div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-x-auto"><table id="tableDividas" class="w-full text-left border-collapse text-sm">
+            <thead><tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold"><th class="p-4">Título</th><th class="p-4">Valor</th><th class="p-4">Término / Vencimento</th><th class="p-4">Status / Pagamento</th><th class="p-4 text-right no-export">Ações</th></tr></thead>
+            <tbody id="tabelaDividasBody" class="divide-y divide-marrom-100 "></tbody></table></div></div>
+        <div id="tab-gastos" class="tab-content space-y-6 hidden"><div class="flex justify-between items-center flex-wrap gap-2">
+            <h1 class="text-2xl font-bold text-marrom-900 font-title">Gastos</h1>
+            <div class="flex items-center gap-2 relative"><div class="relative inline-block text-left">
+                <button onclick="toggleDropdown('excelDropdownGas')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar Excel ▾</button>
+                <div id="excelDropdownGas" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                    <button onclick="exportExcel('gastos'); toggleDropdown('excelDropdownGas')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                    <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownGas')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                </div></div>
+                <div class="relative inline-block text-left">
+                    <button onclick="toggleDropdown('pdfDropdownGas')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar PDF ▾</button>
+                    <div id="pdfDropdownGas" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                        <button onclick="exportPDF('gastos'); toggleDropdown('pdfDropdownGas')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                        <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownGas')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                    </div></div><button onclick="openModalGasto()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Registrar Gastos</button></div></div><div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-x-auto"><table id="tableGastos" class="w-full text-left border-collapse text-sm">
+            <thead><tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold"><th class="p-4">Descrição</th><th class="p-4">Categoria</th><th class="p-4">Forma</th><th class="p-4">Valor</th><th class="p-4">Data</th><th class="p-4 text-right no-export">Ações</th></tr></thead>
+            <tbody id="tabelaGastosBody" class="divide-y divide-marrom-100 "></tbody></table></div></div>
+        <div id="tab-cartoes" class="tab-content space-y-6 hidden"><div class="flex justify-between items-center flex-wrap gap-2">
+            <h1 class="text-2xl font-bold text-marrom-900 font-title">Cartões</h1>
+            <div class="flex items-center gap-2 relative"><div class="relative inline-block text-left">
+                <button onclick="toggleDropdown('excelDropdownCar')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar Excel ▾</button>
+                <div id="excelDropdownCar" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                    <button onclick="exportExcel('cartoes'); toggleDropdown('excelDropdownCar')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                    <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownCar')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
+                </div></div>
+                <div class="relative inline-block text-left">
+                    <button onclick="toggleDropdown('pdfDropdownCar')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar PDF ▾</button>
+                    <div id="pdfDropdownCar" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
+                        <button onclick="exportPDF('cartoes'); toggleDropdown('pdfDropdownCar')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
+                        <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownCar')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
+                    </div></div><button onclick="openModalCartao()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Adicionar Cartão</button></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="cartoesGrid"></div></div>
 
-        <!-- ABA DÍVIDAS FIXAS -->
-        <div id="tab-dividas" class="tab-content space-y-6 hidden">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-marrom-900 font-title">Dívidas Fixas</h1>
-                <div class="flex items-center gap-2">
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('excelDropdownDiv')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
-                        <div id="excelDropdownDiv" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportExcel('dividas'); toggleDropdown('excelDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('pdfDropdownDiv')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
-                        <div id="pdfDropdownDiv" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportPDF('dividas'); toggleDropdown('pdfDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownDiv')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <button onclick="openModalDivida()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Adicionar Dívida
-                    </button>
-                </div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-hidden">
-                <table id="tableDividas" class="w-full text-left border-collapse text-sm">
-                    <thead>
-                    <tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold">
-                        <th class="p-4">Título</th>
-                        <th class="p-4">Valor</th>
-                        <th class="p-4">Término previsto</th>
-                        <th class="p-4 text-right no-export">Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tabelaDividasBody" class="divide-y divide-marrom-100">
-                    <!-- Preenchido via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ABA GASTOS -->
-        <div id="tab-gastos" class="tab-content space-y-6 hidden">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-marrom-900 font-title">Gastos</h1>
-                <div class="flex items-center gap-2">
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('excelDropdownGas')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
-                        <div id="excelDropdownGas" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportExcel('gastos'); toggleDropdown('excelDropdownGas')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownGas')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('pdfDropdownGas')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
-                        <div id="pdfDropdownGas" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportPDF('gastos'); toggleDropdown('pdfDropdownGas')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownGas')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <button onclick="openModalGasto()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Registrar Gastos
-                    </button>
-                </div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-hidden">
-                <table id="tableGastos" class="w-full text-left border-collapse text-sm">
-                    <thead>
-                    <tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold">
-                        <th class="p-4">Descrição</th>
-                        <th class="p-4">Categoria</th>
-                        <th class="p-4">Forma</th>
-                        <th class="p-4">Valor</th>
-                        <th class="p-4">Data</th>
-                        <th class="p-4 text-right no-export">Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tabelaGastosBody" class="divide-y divide-marrom-100">
-                    <!-- Preenchido via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ABA CARTÕES -->
-        <div id="tab-cartoes" class="tab-content space-y-6 hidden">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-marrom-900 font-title">Cartões</h1>
-                <div class="flex items-center gap-2">
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('excelDropdownCar')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel ▾</button>
-                        <div id="excelDropdownCar" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportExcel('cartoes'); toggleDropdown('excelDropdownCar')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportExcel('geral'); toggleDropdown('excelDropdownCar')" class="block w-full text-left px-4 py-2 text-xs font-bold text-emerald-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <div class="relative inline-block text-left">
-                        <button onclick="toggleDropdown('pdfDropdownCar')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF ▾</button>
-                        <div id="pdfDropdownCar" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-30 py-1">
-                            <button onclick="exportPDF('cartoes'); toggleDropdown('pdfDropdownCar')" class="block w-full text-left px-4 py-2 text-xs text-marrom-900 hover:bg-marrom-100">Exportar Esta Página</button>
-                            <button onclick="exportPDF('geral'); toggleDropdown('pdfDropdownCar')" class="block w-full text-left px-4 py-2 text-xs font-bold text-rose-800 hover:bg-marrom-100">Exportar Geral</button>
-                        </div>
-                    </div>
-                    <button onclick="openModalCartao()" class="bg-marrom-800 hover:bg-marrom-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Adicionar Cartão
-                    </button>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="cartoesGrid">
-                <!-- Preenchido via JS -->
-            </div>
-        </div>
-
-        <!-- ABA AUDITORIA -->
         <div id="tab-auditoria" class="tab-content space-y-6 hidden">
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-marrom-900 font-title">Auditoria do Sistema</h1>
                 <div class="flex gap-2">
-                    <button onclick="exportExcel('auditoria')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar Excel</button>
-                    <button onclick="exportPDF('auditoria')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">Exportar PDF</button>
+                    <button onclick="exportExcel('auditoria')" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar Excel</button>
+                    <button onclick="exportPDF('auditoria')" class="bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow">Exportar PDF</button>
                 </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-hidden">
-                <table id="tableAuditoria" class="w-full text-left border-collapse text-sm">
-                    <thead>
-                    <tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold">
-                        <th class="p-4">Data</th>
-                        <th class="p-4">Hora</th>
-                        <th class="p-4">Usuário</th>
-                        <th class="p-4">Ação Realizada</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tabelaAuditoriaBody" class="divide-y divide-marrom-100 text-xs">
-                    <!-- Preenchido via JS -->
-                    </tbody>
-                </table>
-            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 overflow-x-auto"><table id="tableAuditoria" class="w-full text-left border-collapse text-sm">
+                <thead><tr class="bg-marrom-100 text-marrom-800 text-xs uppercase font-semibold"><th class="p-4">Data</th><th class="p-4">Hora</th><th class="p-4">Usuário</th><th class="p-4">Ação Realizada</th></tr></thead>
+                <tbody id="tabelaAuditoriaBody" class="divide-y divide-marrom-100 text-xs"></tbody></table></div>
         </div>
 
-        <!-- ABA APAGAR USUÁRIO -->
         <div id="tab-apagarUsuario" class="tab-content space-y-6 hidden">
             <h1 class="text-2xl font-bold text-marrom-900 font-title">Apagar Usuário</h1>
             <div class="bg-white rounded-2xl shadow-sm border border-marrom-100 p-6 max-w-xl">
                 <p class="text-sm text-marrom-600 mb-4">Selecione o usuário que deseja remover do sistema:</p>
-                <div id="deleteUserList" class="space-y-3">
-                    <!-- Preenchido via JS -->
-                </div>
+                <div id="deleteUserList" class="space-y-3"></div>
             </div>
         </div>
-
     </main>
 </div>
 
-<!-- MODAIS DE CADASTRO -->
-
-<!-- Modal Nova Entrada -->
+<!-- MODAL ENTRADA -->
 <div id="modalEntrada" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
         <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Nova Entrada de Dinheiro</h3>
-        <form onsubmit="saveEntrada(event)">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Descrição</label>
-                    <input type="text" id="entDesc" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento / Recebimento</label>
-                    <select id="entForma" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                        <option value="Pix">Pix</option>
-                        <option value="Dinheiro Físico">Dinheiro Físico</option>
-                        <option value="Transferência">Transferência</option>
-                        <option value="Boleto Bancário">Boleto Bancário</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor</label>
-                    <input type="number" step="0.01" id="entValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data</label>
-                    <input type="date" id="entData" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-            </div>
+        <form onsubmit="saveEntrada(event)"><div class="space-y-4">
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Descrição</label><input type="text" id="entDesc" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento / Recebimento</label><select id="entForma" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Pix">Pix</option>
+                <option value="Dinheiro Físico">Dinheiro Físico</option>
+                <option value="Transferência">Transferência</option>
+                <option value="Boleto Bancário">Boleto Bancário</option>
+                <option value="Código de Barras">Código de Barras</option></select></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor</label><input type="number" step="0.01" id="entValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data</label><input type="date" id="entData" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+        </div>
             <div class="flex justify-end gap-2 mt-6">
                 <button type="button" onclick="closeModalEntrada()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
                 <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button>
-            </div>
-        </form>
+            </div></form>
     </div>
 </div>
 
-<!-- Modal Adicionar Dívida -->
+<!-- MODAL DÍVIDA -->
 <div id="modalDivida" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Adicionar Dívida Fixa</h3>
-        <form onsubmit="saveDivida(event)">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Título da Dívida</label>
-                    <input type="text" id="divTitulo" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo</label>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="setDivTipo('Produto')" id="btnTipoProduto" class="flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white">Produto</button>
-                        <button type="button" onclick="setDivTipo('Serviço')" id="btnTipoServico" class="flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800">Serviço</button>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento</label>
-                    <select id="divForma" onchange="handleDivFormaChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                        <option value="Pix">Pix</option>
-                        <option value="Dinheiro Físico">Dinheiro Físico</option>
-                        <option value="Transferência">Transferência</option>
-                        <option value="Boleto Bancário">Boleto Bancário</option>
-                        <option value="Cartão">Cartão</option>
-                    </select>
-                </div>
-
-                <div id="divCartaoContainer" class="hidden space-y-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Selecione o Cartão</label>
-                        <select id="divCartaoSelect" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo de Cartão</label>
-                        <select id="divTipoCartao" onchange="handleCartaoTipoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                            <option value="Crédito">Crédito</option>
-                            <option value="Débito">Débito</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="divParceladoContainer">
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Parcelado?</label>
-                    <select id="divParcelado" onchange="handleParceladoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                        <option value="Não">Não</option>
-                        <option value="Sim">Sim</option>
-                    </select>
-                </div>
-
-                <div id="divQtdParcelasContainer" class="hidden">
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Número de Vezes (Parcelas)</label>
-                    <input type="number" id="divQtdVezes" min="1" value="1" oninput="calcDividaTermino()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-
-                <div>
-                    <label id="lblValorDivida" class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor</label>
-                    <input type="number" step="0.01" id="divValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data em que começou</label>
-                    <input type="date" id="divData" onchange="calcDividaTermino()" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-
-                <div id="divTerminoPreview" class="text-xs text-marrom-600 font-medium bg-marrom-50 p-2 rounded-lg hidden"></div>
+        <form onsubmit="saveDivida(event)"><div class="space-y-4">
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Título da Dívida</label><input type="text" id="divTitulo" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo</label>
+                <div class="flex gap-2">
+                    <button type="button" onclick="setDivTipo('Produto')" id="btnTipoProduto" class="flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white">Produto</button>
+                    <button type="button" onclick="setDivTipo('Serviço')" id="btnTipoServico" class="flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800">Serviço</button>
+                </div></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento</label>
+                <select id="divForma" onchange="handleDivFormaChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Pix">Pix</option>
+                    <option value="Dinheiro Físico">Dinheiro Físico</option>
+                    <option value="Transferência">Transferência</option>
+                    <option value="Boleto Bancário">Boleto Bancário</option>
+                    <option value="Código de Barras">Código de Barras</option><option value="Cartão">Cartão</option></select></div>
+            <div id="divCartaoContainer" class="hidden space-y-3">
+                <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Selecione o Cartão</label><select id="divCartaoSelect" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></select></div>
+                <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo de Cartão</label>
+                    <select id="divTipoCartao" onchange="handleCartaoTipoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Crédito">Crédito</option><option value="Débito">Débito</option></select></div>
             </div>
-
+            <div id="divParceladoContainer"><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Parcelado?</label>
+                <select id="divParcelado" onchange="handleParceladoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+            <div id="divQtdParcelasContainer" class="hidden"><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Número de Vezes (Parcelas)</label>
+                <input type="number" id="divQtdVezes" min="1" value="1" oninput="calcDividaTermino()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label id="lblValorDivida" class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor</label><input type="number" step="0.01" id="divValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data em que começou</label><input type="date" id="divData" onchange="calcDividaTermino()" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div id="divTerminoPreview" class="text-xs text-marrom-600 font-medium bg-marrom-50 p-2 rounded-lg hidden"></div>
+        </div>
             <div class="flex justify-end gap-2 mt-6">
                 <button type="button" onclick="closeModalDivida()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
                 <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button>
-            </div>
-        </form>
+            </div></form>
     </div>
 </div>
 
-<!-- Modal Registrar Gasto -->
+<!-- MODAL GASTO -->
 <div id="modalGasto" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Registrar Gasto</h3>
-        <form onsubmit="saveGasto(event)">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Descrição</label>
-                    <input type="text" id="gastoDesc" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Categoria</label>
-                    <select id="gastoCat" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                        <option value="Alimentação">Alimentação</option>
-                        <option value="Saúde">Saúde</option>
-                        <option value="Lazer">Lazer</option>
-                        <option value="Transporte">Transporte</option>
-                        <option value="Outros">Outros</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento</label>
-                    <select id="gastoForma" onchange="handleGastoFormaChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                        <option value="Pix">Pix</option>
-                        <option value="Dinheiro Físico">Dinheiro Físico</option>
-                        <option value="Transferência">Transferência</option>
-                        <option value="Boleto Bancário">Boleto Bancário</option>
-                        <option value="Cartão">Cartão</option>
-                    </select>
-                </div>
-
-                <div id="gastoCartaoContainer" class="hidden space-y-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Selecione o Cartão</label>
-                        <select id="gastoCartaoSelect" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo de Cartão</label>
-                        <select id="gastoTipoCartao" onchange="handleGastoCartaoTipoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                            <option value="Crédito">Crédito</option>
-                            <option value="Débito">Débito</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="gastoParceladoContainer">
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Parcelado?</label>
-                    <select id="gastoParcelado" onchange="handleGastoParceladoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                        <option value="Não">Não</option>
-                        <option value="Sim">Sim</option>
-                    </select>
-                </div>
-
-                <div id="gastoQtdVezesContainer" class="hidden">
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Número de Vezes</label>
-                    <input type="number" id="gastoQtdVezes" min="1" value="1" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-
-                <div>
-                    <label id="lblValorGasto" class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor Total à Vista</label>
-                    <input type="number" step="0.01" id="gastoValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data</label>
-                    <input type="date" id="gastoData" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
+        <form onsubmit="saveGasto(event)"><div class="space-y-4">
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Descrição</label><input type="text" id="gastoDesc" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Categoria</label>
+                <select id="gastoCat" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Alimentação">Alimentação</option><option value="Saúde">Saúde</option><option value="Lazer">Lazer</option><option value="Transporte">Transporte</option><option value="Outros">Outros</option></select></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Forma de Pagamento</label>
+                <select id="gastoForma" onchange="handleGastoFormaChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Pix">Pix</option>
+                    <option value="Dinheiro Físico">Dinheiro Físico</option>
+                    <option value="Transferência">Transferência</option>
+                    <option value="Boleto Bancário">Boleto Bancário</option>
+                    <option value="Código de Barras">Código de Barras</option><option value="Cartão">Cartão</option></select></div>
+            <div id="gastoCartaoContainer" class="hidden space-y-3">
+                <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Selecione o Cartão</label><select id="gastoCartaoSelect" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></select></div>
+                <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo de Cartão</label>
+                    <select id="gastoTipoCartao" onchange="handleGastoCartaoTipoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Crédito">Crédito</option><option value="Débito">Débito</option></select></div>
             </div>
+            <div id="gastoParceladoContainer"><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Parcelado?</label>
+                <select id="gastoParcelado" onchange="handleGastoParceladoChange()" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+            <div id="gastoQtdVezesContainer" class="hidden"><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Número de Vezes</label><input type="number" id="gastoQtdVezes" min="1" value="1" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label id="lblValorGasto" class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Valor Total à Vista</label><input type="number" step="0.01" id="gastoValor" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Data</label><input type="date" id="gastoData" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+        </div>
             <div class="flex justify-end gap-2 mt-6">
                 <button type="button" onclick="closeModalGasto()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
                 <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button>
-            </div>
-        </form>
+            </div></form>
     </div>
 </div>
 
-<!-- Modal Adicionar Cartão -->
+<!-- MODAL CARTÃO -->
 <div id="modalCartao" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
         <h3 class="text-lg font-bold text-marrom-900 mb-4 font-title">Adicionar Cartão</h3>
-        <form onsubmit="saveCartao(event)">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Nome do Cartão</label>
-                    <input type="text" id="cartaoNome" required placeholder="Ex: Nubank Platinum" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Banco</label>
-                    <input type="text" id="cartaoBanco" required placeholder="Ex: Nubank" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo</label>
-                    <select id="cartaoTipo" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                        <option value="Crédito e Débito">Crédito e Débito</option>
-                        <option value="Apenas Crédito">Apenas Crédito</option>
-                        <option value="Apenas Débito">Apenas Débito</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Final (4 dígitos)</label>
-                    <input type="text" id="cartaoFinal" maxlength="4" required placeholder="1234" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Limite (R$)</label>
-                    <input type="number" step="0.01" id="cartaoLimite" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm">
-                </div>
-            </div>
+        <form onsubmit="saveCartao(event)"><div class="space-y-4">
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Nome do Cartão</label><input type="text" id="cartaoNome" required placeholder="Ex: Nubank Platinum" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Banco</label><input type="text" id="cartaoBanco" required placeholder="Ex: Nubank" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Tipo</label>
+                <select id="cartaoTipo" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"><option value="Crédito e Débito">Crédito e Débito</option><option value="Apenas Crédito">Apenas Crédito</option><option value="Apenas Débito">Apenas Débito</option></select></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Final (4 dígitos)</label><input type="text" id="cartaoFinal" maxlength="4" required placeholder="1234" class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+            <div><label class="block text-xs font-semibold text-marrom-700 uppercase mb-1">Limite (R$)</label><input type="number" step="0.01" id="cartaoLimite" required class="w-full px-3 py-2 border border-marrom-200 rounded-lg text-sm"></div>
+        </div>
             <div class="flex justify-end gap-2 mt-6">
                 <button type="button" onclick="closeModalCartao()" class="px-4 py-2 text-sm text-marrom-600 hover:bg-marrom-100 rounded-lg">Cancelar</button>
                 <button type="submit" class="px-4 py-2 text-sm bg-marrom-800 text-white rounded-lg hover:bg-marrom-900 font-medium">Salvar</button>
-            </div>
-        </form>
+            </div></form>
     </div>
 </div>
 
-<!-- SCRIPT DE GERENCIAMENTO DO SISTEMA -->
 <script>
     let db = JSON.parse(localStorage.getItem('sistema_financeiro_db')) || {
-        usuarios: [],
-        currentUser: null,
-        salarios: {},
-        entradas: {},
-        dividas: {},
-        gastos: {},
-        cartoes: {},
-        auditoria: []
+        usuarios: [], currentUser: null, salarios: {}, entradas: {}, dividas: {}, gastos: {}, cartoes: {}, auditoria: []
     };
-
     let currentDivTipo = 'Produto';
     let currentTab = 'renda';
     let previousTab = 'renda';
 
-    function saveData() {
-        localStorage.setItem('sistema_financeiro_db', JSON.stringify(db));
-    }
+    function saveData() { localStorage.setItem('sistema_financeiro_db', JSON.stringify(db)); }
+    function fmtData(iso) { return iso ? iso.split('-').reverse().join('/') : '-'; }
 
     window.onload = function() {
         document.getElementById('currentDateHeader').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         renderLoginScreen();
-        if ('Notification' in window && Notification.permission !== 'granted') {
-            Notification.requestPermission();
+        if ('Notification' in window && Notification.permission === 'default') {
+            try { Notification.requestPermission(); } catch (e) {}
         }
     };
 
@@ -742,13 +401,11 @@
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('userNameDisplay').innerText = userName;
         document.getElementById('userInitial').innerText = userName.charAt(0).toUpperCase();
-
         if (!db.salarios[userName]) db.salarios[userName] = 0;
         if (!db.entradas[userName]) db.entradas[userName] = [];
         if (!db.dividas[userName]) db.dividas[userName] = [];
         if (!db.gastos[userName]) db.gastos[userName] = [];
         if (!db.cartoes[userName]) db.cartoes[userName] = [];
-
         logAuditoria('Fez login no sistema');
         refreshAllViews();
     }
@@ -759,14 +416,10 @@
         renderLoginScreen();
     }
 
-    function goBackToHome() {
-        // Volta para a aba anterior em vez de ir para o login
-        switchTab(previousTab);
-    }
+    function goBackToHome() { switchTab(previousTab); }
 
-    function openCreateUserModal() {
-        document.getElementById('createUserModal').classList.remove('hidden');
-    }
+    function openCreateUserModal() { document.getElementById('createUserModal').classList.remove('hidden'); }
+    function showCreateUserModal() { openCreateUserModal(); }
     function closeCreateUserModal() {
         document.getElementById('createUserModal').classList.add('hidden');
         document.getElementById('newUserName').value = '';
@@ -776,36 +429,22 @@
         e.preventDefault();
         const name = document.getElementById('newUserName').value.trim();
         if (!name) return;
-        if (db.usuarios.includes(name)) {
-            alert('Usuário já existe!');
-            return;
-        }
+        if (db.usuarios.includes(name)) { alert('Usuário já existe!'); return; }
         db.usuarios.push(name);
         saveData();
         closeCreateUserModal();
         renderLoginScreen();
+        if (db.currentUser && currentTab === 'apagarUsuario') renderDeleteUserList();
     }
 
     function switchTab(tabId) {
-        if (tabId !== currentTab) {
-            previousTab = currentTab;
-            currentTab = tabId;
-        }
+        if (tabId !== currentTab) { previousTab = currentTab; currentTab = tabId; }
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.nav-btn').forEach(el => {
-            el.classList.remove('bg-marrom-700', 'text-white');
-            el.classList.add('text-marrom-200');
-        });
-
+        document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('bg-marrom-700', 'text-white'); el.classList.add('text-marrom-200'); });
         document.getElementById('tab-' + tabId).classList.remove('hidden');
         const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
-        if (activeBtn) {
-            activeBtn.classList.add('bg-marrom-700', 'text-white');
-            activeBtn.classList.remove('text-marrom-200');
-        }
-        if (tabId === 'apagarUsuario') {
-            renderDeleteUserList();
-        }
+        if (activeBtn) { activeBtn.classList.add('bg-marrom-700', 'text-white'); activeBtn.classList.remove('text-marrom-200'); }
+        if (tabId === 'apagarUsuario') renderDeleteUserList();
     }
 
     function toggleSidebar() {
@@ -816,41 +455,26 @@
     }
 
     function refreshAllViews() {
-        renderRenda();
-        renderEntradas();
-        renderDividas();
-        renderGastos();
-        renderCartoes();
-        renderAuditoria();
-        checkNearDueDates();
+        renderRenda(); renderEntradas(); renderDividas(); renderGastos(); renderCartoes(); renderAuditoria(); checkNearDueDates();
     }
 
     function renderRenda() {
         const user = db.currentUser;
-        const salario = db.salarios[user] || 0;
-        document.getElementById('salarioDisplay').innerText = `R$ ${salario.toFixed(2)}`;
-
-        const totalEntradas = (db.entradas[user] || []).reduce((acc, item) => acc + item.valor, 0);
-        const totalDividas = (db.dividas[user] || []).reduce((acc, item) => acc + item.valor, 0);
-        const totalGastos = (db.gastos[user] || []).reduce((acc, item) => acc + item.valor, 0);
-
-        document.getElementById('resumoEntradas').innerText = `R$ ${totalEntradas.toFixed(2)}`;
-        document.getElementById('resumoDividas').innerText = `R$ ${totalDividas.toFixed(2)}`;
-        document.getElementById('resumoGastos').innerText = `R$ ${totalGastos.toFixed(2)}`;
+        const soma = arr => (arr || []).reduce((acc, i) => acc + i.valor, 0);
+        document.getElementById('salarioDisplay').innerText = `R$ ${(db.salarios[user] || 0).toFixed(2)}`;
+        document.getElementById('resumoEntradas').innerText = `R$ ${soma(db.entradas[user]).toFixed(2)}`;
+        document.getElementById('resumoDividas').innerText = `R$ ${soma(db.dividas[user]).toFixed(2)}`;
+        document.getElementById('resumoGastos').innerText = `R$ ${soma(db.gastos[user]).toFixed(2)}`;
     }
 
     function toggleEditSalario() {
-        const box = document.getElementById('salarioEditBox');
-        box.classList.toggle('hidden');
+        document.getElementById('salarioEditBox').classList.toggle('hidden');
         document.getElementById('inputSalario').value = db.salarios[db.currentUser] || 0;
     }
 
     function saveSalario() {
-        const val = parseFloat(document.getElementById('inputSalario').value) || 0;
-        db.salarios[db.currentUser] = val;
-        saveData();
-        toggleEditSalario();
-        renderRenda();
+        db.salarios[db.currentUser] = parseFloat(document.getElementById('inputSalario').value) || 0;
+        saveData(); toggleEditSalario(); renderRenda();
         logAuditoria('Atualizou o salário mensal');
     }
 
@@ -864,12 +488,8 @@
         const forma = document.getElementById('entForma').value;
         const valor = parseFloat(document.getElementById('entValor').value);
         const data = document.getElementById('entData').value;
-
         db.entradas[db.currentUser].push({ id: Date.now(), desc, forma, valor, data });
-        saveData();
-        closeModalEntrada();
-        renderEntradas();
-        renderRenda();
+        saveData(); closeModalEntrada(); renderEntradas(); renderRenda();
         logAuditoria(`Adicionou entrada: ${desc} (R$ ${valor.toFixed(2)})`);
     }
 
@@ -877,22 +497,16 @@
         const tbody = document.getElementById('tabelaEntradasBody');
         tbody.innerHTML = '';
         const entradas = db.entradas[db.currentUser] || [];
-        if (entradas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-marrom-500">Nenhuma entrada cadastrada.</td></tr>';
-            return;
-        }
+        if (entradas.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-marrom-500">Nenhuma entrada cadastrada.</td></tr>'; return; }
         entradas.forEach(item => {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-marrom-50/50';
             tr.innerHTML = `
-                    <td class="p-4 font-medium text-marrom-900">${item.desc}</td>
-                    <td class="p-4 text-marrom-600">${item.forma}</td>
-                    <td class="p-4 font-bold text-emerald-700">R$ ${item.valor.toFixed(2)}</td>
-                    <td class="p-4 text-marrom-600">${item.data.split('-').reverse().join('/')}</td>
-                    <td class="p-4 text-right">
-                        <button onclick="deleteEntrada(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-                    </td>
-                `;
+      <td class="p-4 font-medium text-marrom-900">${item.desc}</td>
+      <td class="p-4 text-marrom-600">${item.forma}</td>
+      <td class="p-4 font-bold text-emerald-700">R$ ${item.valor.toFixed(2)}</td>
+      <td class="p-4 text-marrom-600">${fmtData(item.data)}</td>
+      <td class="p-4 text-right"><button onclick="deleteEntrada(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></td>`;
             tbody.appendChild(tr);
         });
     }
@@ -900,9 +514,7 @@
     function deleteEntrada(id) {
         if (confirm("Deseja realmente remover essa entrada?")) {
             db.entradas[db.currentUser] = db.entradas[db.currentUser].filter(i => i.id !== id);
-            saveData();
-            renderEntradas();
-            renderRenda();
+            saveData(); renderEntradas(); renderRenda();
             logAuditoria('Removeu uma entrada de dinheiro');
         }
     }
@@ -913,30 +525,26 @@
         document.getElementById('divData').valueAsDate = new Date();
         updateCartaoSelects();
         handleDivFormaChange();
+        calcDividaTermino();
     }
     function closeModalDivida() { document.getElementById('modalDivida').classList.add('hidden'); }
 
     function setDivTipo(tipo) {
         currentDivTipo = tipo;
-        if (tipo === 'Produto') {
-            document.getElementById('btnTipoProduto').className = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white';
-            document.getElementById('btnTipoServico').className = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800';
-        } else {
-            document.getElementById('btnTipoServico').className = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white';
-            document.getElementById('btnTipoProduto').className = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800';
-        }
+        const on = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-600 bg-marrom-800 text-white';
+        const off = 'flex-1 py-2 text-xs font-bold rounded-lg border border-marrom-200 text-marrom-800';
+        document.getElementById('btnTipoProduto').className = tipo === 'Produto' ? on : off;
+        document.getElementById('btnTipoServico').className = tipo === 'Produto' ? off : on;
     }
 
     function handleDivFormaChange() {
         const forma = document.getElementById('divForma').value;
-        const cartaoCont = document.getElementById('divCartaoContainer');
         const parceladoSelect = document.getElementById('divParcelado');
-
         if (forma === 'Cartão') {
-            cartaoCont.classList.remove('hidden');
+            document.getElementById('divCartaoContainer').classList.remove('hidden');
             handleCartaoTipoChange();
         } else {
-            cartaoCont.classList.add('hidden');
+            document.getElementById('divCartaoContainer').classList.add('hidden');
             document.getElementById('divParceladoContainer').classList.remove('hidden');
             if (forma === 'Pix') {
                 parceladoSelect.value = 'Não';
@@ -946,41 +554,43 @@
                 parceladoSelect.disabled = false;
             }
         }
+        calcDividaTermino();
     }
 
     function handleCartaoTipoChange() {
-        const tipoCartao = document.getElementById('divTipoCartao').value;
         const parceladoSelect = document.getElementById('divParcelado');
-        if (tipoCartao === 'Débito') {
+        if (document.getElementById('divTipoCartao').value === 'Débito') {
             parceladoSelect.value = 'Não';
             parceladoSelect.disabled = true;
             document.getElementById('divQtdParcelasContainer').classList.add('hidden');
         } else {
             parceladoSelect.disabled = false;
         }
+        calcDividaTermino();
     }
 
     function handleParceladoChange() {
         const isSim = document.getElementById('divParcelado').value === 'Sim';
-        const qtdCont = document.getElementById('divQtdParcelasContainer');
-        if (isSim) {
-            qtdCont.classList.remove('hidden');
-        } else {
-            qtdCont.classList.add('hidden');
-        }
+        document.getElementById('divQtdParcelasContainer').classList.toggle('hidden', !isSim);
         calcDividaTermino();
+    }
+
+    // Vencimento: se parcelado, = data de início + nº de parcelas (meses); senão, = a própria data
+    function calcVencimento(dataInicio, parcelado, vezes) {
+        if (!dataInicio) return '';
+        if (parcelado !== 'Sim') return dataInicio;
+        const dt = new Date(dataInicio + 'T12:00:00');
+        dt.setMonth(dt.getMonth() + vezes);
+        return dt.toISOString().slice(0, 10);
     }
 
     function calcDividaTermino() {
         const dataInicio = document.getElementById('divData').value;
-        const parcelado = document.getElementById('divParcelado').value === 'Sim';
+        const parcelado = document.getElementById('divParcelado').value;
         const vezes = parseInt(document.getElementById('divQtdVezes').value) || 1;
         const preview = document.getElementById('divTerminoPreview');
-
-        if (dataInicio && parcelado && vezes > 1) {
-            let dt = new Date(dataInicio);
-            dt.setMonth(dt.getMonth() + vezes);
-            preview.innerText = `Previsão de término: ${dt.toLocaleDateString('pt-BR')}`;
+        if (dataInicio && parcelado === 'Sim' && vezes > 1) {
+            preview.innerText = `Previsão de término: ${fmtData(calcVencimento(dataInicio, parcelado, vezes))}`;
             preview.classList.remove('hidden');
         } else {
             preview.classList.add('hidden');
@@ -996,18 +606,14 @@
         const parcelado = document.getElementById('divParcelado').value;
         const vezes = parseInt(document.getElementById('divQtdVezes').value) || 1;
 
-        let terminoPrevisto = '-';
-        if (parcelado === 'Sim' && data) {
-            let dt = new Date(data);
-            dt.setMonth(dt.getMonth() + vezes);
-            terminoPrevisto = dt.toLocaleDateString('pt-BR');
-        }
+        const vencimento = calcVencimento(data, parcelado, vezes);
+        const terminoPrevisto = fmtData(vencimento);
 
-        db.dividas[db.currentUser].push({ id: Date.now(), titulo, tipo: currentDivTipo, forma, valor, data, parcelado, vezes, terminoPrevisto });
-        saveData();
-        closeModalDivida();
-        renderDividas();
-        renderRenda();
+        db.dividas[db.currentUser].push({
+            id: Date.now(), titulo, tipo: currentDivTipo, forma, valor, data,
+            parcelado, vezes, terminoPrevisto, vencimento, pago: false
+        });
+        saveData(); closeModalDivida(); renderDividas(); renderRenda(); checkNearDueDates();
         logAuditoria(`Adicionou dívida fixa: ${titulo} (R$ ${valor.toFixed(2)})`);
     }
 
@@ -1016,30 +622,50 @@
         tbody.innerHTML = '';
         const dividas = db.dividas[db.currentUser] || [];
         if (dividas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-marrom-500">Nenhuma dívida fixa cadastrada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-marrom-500">Nenhuma dívida fixa cadastrada.</td></tr>';
             return;
         }
         dividas.forEach(item => {
+            const venc = item.vencimento || item.data;
+            const isAtrasado = !item.pago && venc && new Date(venc + 'T23:59:59') < new Date();
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-marrom-50/50';
+            tr.className = isAtrasado ? 'bg-amber-100 hover:bg-amber-200 transition' : 'hover:bg-marrom-50/50';
+
+            let statusHtml;
+            if (item.pago) {
+                statusHtml = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Pago</span>
+        <button onclick="togglePago(${item.id})" class="text-xs text-marrom-600 underline ml-2">Desfazer</button>`;
+            } else if (isAtrasado) {
+                statusHtml = `<div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-bold text-amber-900 bg-amber-300 px-2 py-0.5 rounded">Divida Pendente</span>
+        <button onclick="togglePago(${item.id})" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-3 py-1 rounded-lg font-medium">Pago</button></div>`;
+            } else {
+                statusHtml = `<button onclick="togglePago(${item.id})" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-3 py-1.5 rounded-lg transition font-medium">Pago</button>`;
+            }
+
             tr.innerHTML = `
-                    <td class="p-4 font-medium text-marrom-900">${item.titulo}</td>
-                    <td class="p-4 font-bold text-rose-700">R$ ${item.valor.toFixed(2)}</td>
-                    <td class="p-4 text-marrom-600">${item.terminoPrevisto}</td>
-                    <td class="p-4 text-right">
-                        <button onclick="deleteDivida(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-                    </td>
-                `;
+      <td class="p-4 font-medium text-marrom-900">${item.titulo}</td>
+      <td class="p-4 font-bold text-rose-700">R$ ${item.valor.toFixed(2)}</td>
+      <td class="p-4 text-marrom-600">${fmtData(venc)}</td>
+      <td class="p-4">${statusHtml}</td>
+      <td class="p-4 text-right"><button onclick="deleteDivida(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></td>`;
             tbody.appendChild(tr);
         });
+    }
+
+    function togglePago(id) {
+        const d = (db.dividas[db.currentUser] || []).find(i => i.id === id);
+        if (d) {
+            d.pago = !d.pago;
+            saveData(); renderDividas(); checkNearDueDates();
+            logAuditoria(`Alterou status da dívida "${d.titulo}" para ${d.pago ? 'Pago' : 'Pendente'}`);
+        }
     }
 
     function deleteDivida(id) {
         if (confirm("Deseja realmente remover essa dívida?")) {
             db.dividas[db.currentUser] = db.dividas[db.currentUser].filter(i => i.id !== id);
-            saveData();
-            renderDividas();
-            renderRenda();
+            saveData(); renderDividas(); renderRenda(); checkNearDueDates();
             logAuditoria('Removeu uma dívida fixa');
         }
     }
@@ -1055,19 +681,18 @@
 
     function handleGastoFormaChange() {
         const forma = document.getElementById('gastoForma').value;
-        const cartaoCont = document.getElementById('gastoCartaoContainer');
         const parceladoSelect = document.getElementById('gastoParcelado');
-
         if (forma === 'Cartão') {
-            cartaoCont.classList.remove('hidden');
+            document.getElementById('gastoCartaoContainer').classList.remove('hidden');
             handleGastoCartaoTipoChange();
         } else {
-            cartaoCont.classList.add('hidden');
+            document.getElementById('gastoCartaoContainer').classList.add('hidden');
             document.getElementById('gastoParceladoContainer').classList.remove('hidden');
             if (forma === 'Pix') {
                 parceladoSelect.value = 'Não';
                 parceladoSelect.disabled = true;
                 document.getElementById('gastoQtdVezesContainer').classList.add('hidden');
+                document.getElementById('lblValorGasto').innerText = 'Valor Total à Vista';
             } else {
                 parceladoSelect.disabled = false;
             }
@@ -1075,12 +700,12 @@
     }
 
     function handleGastoCartaoTipoChange() {
-        const tipoCartao = document.getElementById('gastoTipoCartao').value;
         const parceladoSelect = document.getElementById('gastoParcelado');
-        if (tipoCartao === 'Débito') {
+        if (document.getElementById('gastoTipoCartao').value === 'Débito') {
             parceladoSelect.value = 'Não';
             parceladoSelect.disabled = true;
             document.getElementById('gastoQtdVezesContainer').classList.add('hidden');
+            document.getElementById('lblValorGasto').innerText = 'Valor Total à Vista';
         } else {
             parceladoSelect.disabled = false;
         }
@@ -1088,15 +713,8 @@
 
     function handleGastoParceladoChange() {
         const isSim = document.getElementById('gastoParcelado').value === 'Sim';
-        const qtdCont = document.getElementById('gastoQtdVezesContainer');
-        const lblValor = document.getElementById('lblValorGasto');
-        if (isSim) {
-            qtdCont.classList.remove('hidden');
-            lblValor.innerText = 'Valor Total';
-        } else {
-            qtdCont.classList.add('hidden');
-            lblValor.innerText = 'Valor Total à Vista';
-        }
+        document.getElementById('gastoQtdVezesContainer').classList.toggle('hidden', !isSim);
+        document.getElementById('lblValorGasto').innerText = isSim ? 'Valor Total' : 'Valor Total à Vista';
     }
 
     function saveGasto(e) {
@@ -1106,12 +724,8 @@
         const forma = document.getElementById('gastoForma').value;
         const valor = parseFloat(document.getElementById('gastoValor').value);
         const data = document.getElementById('gastoData').value;
-
         db.gastos[db.currentUser].push({ id: Date.now(), desc, categoria, forma, valor, data });
-        saveData();
-        closeModalGasto();
-        renderGastos();
-        renderRenda();
+        saveData(); closeModalGasto(); renderGastos(); renderRenda();
         logAuditoria(`Registrou gasto: ${desc} (R$ ${valor.toFixed(2)})`);
     }
 
@@ -1119,23 +733,17 @@
         const tbody = document.getElementById('tabelaGastosBody');
         tbody.innerHTML = '';
         const gastos = db.gastos[db.currentUser] || [];
-        if (gastos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-marrom-500">Nenhum gasto registrado.</td></tr>';
-            return;
-        }
+        if (gastos.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-marrom-500">Nenhum gasto registrado.</td></tr>'; return; }
         gastos.forEach(item => {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-marrom-50/50';
             tr.innerHTML = `
-                    <td class="p-4 font-medium text-marrom-900">${item.desc}</td>
-                    <td class="p-4 text-marrom-600">${item.categoria}</td>
-                    <td class="p-4 text-marrom-600">${item.forma}</td>
-                    <td class="p-4 font-bold text-amber-700">R$ ${item.valor.toFixed(2)}</td>
-                    <td class="p-4 text-marrom-600">${item.data.split('-').reverse().join('/')}</td>
-                    <td class="p-4 text-right">
-                        <button onclick="deleteGasto(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-                    </td>
-                `;
+      <td class="p-4 font-medium text-marrom-900">${item.desc}</td>
+      <td class="p-4 text-marrom-600">${item.categoria}</td>
+      <td class="p-4 text-marrom-600">${item.forma}</td>
+      <td class="p-4 font-bold text-amber-700">R$ ${item.valor.toFixed(2)}</td>
+      <td class="p-4 text-marrom-600">${fmtData(item.data)}</td>
+      <td class="p-4 text-right"><button onclick="deleteGasto(${item.id})" class="text-rose-600 hover:text-rose-800 p-1" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></td>`;
             tbody.appendChild(tr);
         });
     }
@@ -1143,9 +751,7 @@
     function deleteGasto(id) {
         if (confirm("Deseja realmente remover esse gasto?")) {
             db.gastos[db.currentUser] = db.gastos[db.currentUser].filter(i => i.id !== id);
-            saveData();
-            renderGastos();
-            renderRenda();
+            saveData(); renderGastos(); renderRenda();
             logAuditoria('Removeu um gasto');
         }
     }
@@ -1161,11 +767,8 @@
         const tipo = document.getElementById('cartaoTipo').value;
         const final = document.getElementById('cartaoFinal').value;
         const limite = parseFloat(document.getElementById('cartaoLimite').value);
-
         db.cartoes[db.currentUser].push({ id: Date.now(), nome, banco, tipo, final, limite });
-        saveData();
-        closeModalCartao();
-        renderCartoes();
+        saveData(); closeModalCartao(); renderCartoes();
         logAuditoria(`Adicionou cartão: ${nome} (${banco})`);
     }
 
@@ -1173,29 +776,22 @@
         const grid = document.getElementById('cartoesGrid');
         grid.innerHTML = '';
         const cartoes = db.cartoes[db.currentUser] || [];
-        if (cartoes.length === 0) {
-            grid.innerHTML = '<p class="text-sm text-marrom-500 col-span-3 text-center py-4">Nenhum cartão cadastrado.</p>';
-            return;
-        }
+        if (cartoes.length === 0) { grid.innerHTML = '<p class="text-sm text-marrom-500 col-span-3 text-center py-4">Nenhum cartão cadastrado.</p>'; return; }
         cartoes.forEach(c => {
             const card = document.createElement('div');
             card.className = 'bg-marrom-800 text-white p-5 rounded-2xl shadow-md relative flex flex-col justify-between h-44 card-item';
             card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-xs uppercase tracking-wider text-marrom-300">${c.banco}</span>
-                            <h4 class="font-bold text-base text-white">${c.nome}</h4>
-                        </div>
-                        <button onclick="deleteCartao(${c.id})" class="text-marrom-300 hover:text-white p-1 no-export" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-                    </div>
-                    <div>
-                        <span class="text-xs text-marrom-300">${c.tipo}</span>
-                        <div class="flex justify-between items-end mt-2">
-                            <span class="text-lg font-mono tracking-widest">•••• ${c.final}</span>
-                            <span class="text-xs font-medium">Limite: R$ ${c.limite.toFixed(2)}</span>
-                        </div>
-                    </div>
-                `;
+      <div class="flex justify-between items-start">
+        <div><span class="text-xs uppercase tracking-wider text-marrom-300">${c.banco}</span><h4 class="font-bold text-base text-white">${c.nome}</h4></div>
+        <button onclick="deleteCartao(${c.id})" class="text-marrom-300 hover:text-white p-1 no-export" title="Remover"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+      </div>
+      <div>
+        <span class="text-xs text-marrom-300">${c.tipo}</span>
+        <div class="flex justify-between items-end mt-2">
+          <span class="text-lg font-mono tracking-widest">•••• ${c.final}</span>
+          <span class="text-xs font-medium">Limite: R$ ${c.limite.toFixed(2)}</span>
+        </div>
+      </div>`;
             grid.appendChild(card);
         });
     }
@@ -1203,8 +799,7 @@
     function deleteCartao(id) {
         if (confirm("Certeza que deseja remover esse cartão?")) {
             db.cartoes[db.currentUser] = db.cartoes[db.currentUser].filter(i => i.id !== id);
-            saveData();
-            renderCartoes();
+            saveData(); renderCartoes();
             logAuditoria('Removeu um cartão');
         }
     }
@@ -1213,17 +808,14 @@
         const cartoes = db.cartoes[db.currentUser] || [];
         const sel1 = document.getElementById('divCartaoSelect');
         const sel2 = document.getElementById('gastoCartaoSelect');
-        sel1.innerHTML = '';
-        sel2.innerHTML = '';
+        sel1.innerHTML = ''; sel2.innerHTML = '';
         if (cartoes.length === 0) {
-            sel1.innerHTML = '<option value="">Cadastre um cartão primeiro</option>';
-            sel2.innerHTML = '<option value="">Cadastre um cartão primeiro</option>';
+            sel1.innerHTML = sel2.innerHTML = '<option value="">Cadastre um cartão primeiro</option>';
             return;
         }
         cartoes.forEach(c => {
             const opt = `<option value="${c.nome} (${c.banco})">${c.nome} - ${c.banco} (•••• ${c.final})</option>`;
-            sel1.innerHTML += opt;
-            sel2.innerHTML += opt;
+            sel1.innerHTML += opt; sel2.innerHTML += opt;
         });
     }
 
@@ -1231,72 +823,30 @@
     function exportExcel(tab) {
         const user = db.currentUser;
         const wb = XLSX.utils.book_new();
-        let fileName = `relatorio_${tab}_${user}.xlsx`;
+        const add = (rows, nome) => { if (rows.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), nome); };
 
         if (tab === 'geral') {
-            fileName = `relatorio_geral_completo_${user}.xlsx`;
-
-            // Renda / Salário
-            const rendaData = [{ 'Métrica': 'Salário Mensal', 'Valor (R$)': db.salarios[user] || 0 }];
-            const wsRenda = XLSX.utils.json_to_sheet(rendaData);
-            XLSX.utils.book_append_sheet(wb, wsRenda, 'Renda');
-
-            // Entradas
-            const entradasData = (db.entradas[user] || []).map(i => ({ 'Descrição': i.desc, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Data': i.data }));
-            if (entradasData.length > 0) {
-                const wsEntradas = XLSX.utils.json_to_sheet(entradasData);
-                XLSX.utils.book_append_sheet(wb, wsEntradas, 'Entradas');
-            }
-
-            // Dívidas
-            const dividasData = (db.dividas[user] || []).map(i => ({ 'Título': i.titulo, 'Tipo': i.tipo, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Término Previsto': i.terminoPrevisto }));
-            if (dividasData.length > 0) {
-                const wsDividas = XLSX.utils.json_to_sheet(dividasData);
-                XLSX.utils.book_append_sheet(wb, wsDividas, 'Dívidas Fixas');
-            }
-
-            // Gastos
-            const gastosData = (db.gastos[user] || []).map(i => ({ 'Descrição': i.desc, 'Categoria': i.categoria, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Data': i.data }));
-            if (gastosData.length > 0) {
-                const wsGastos = XLSX.utils.json_to_sheet(gastosData);
-                XLSX.utils.book_append_sheet(wb, wsGastos, 'Gastos');
-            }
-
-            // Cartões
-            const cartoesData = (db.cartoes[user] || []).map(i => ({ 'Nome': i.nome, 'Banco': i.banco, 'Tipo': i.tipo, 'Final': i.final, 'Limite (R$)': i.limite }));
-            if (cartoesData.length > 0) {
-                const wsCartoes = XLSX.utils.json_to_sheet(cartoesData);
-                XLSX.utils.book_append_sheet(wb, wsCartoes, 'Cartões');
-            }
-
-            XLSX.writeFile(wb, fileName);
+            add([{ 'Métrica': 'Salário Mensal', 'Valor (R$)': db.salarios[user] || 0 }], 'Renda');
+            add((db.entradas[user] || []).map(i => ({ 'Descrição': i.desc, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Data': i.data })), 'Entradas');
+            add((db.dividas[user] || []).map(i => ({ 'Título': i.titulo, 'Tipo': i.tipo, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Término Previsto': i.terminoPrevisto, 'Pago': i.pago ? 'Sim' : 'Não' })), 'Dívidas Fixas');
+            add((db.gastos[user] || []).map(i => ({ 'Descrição': i.desc, 'Categoria': i.categoria, 'Forma': i.forma, 'Valor (R$)': i.valor, 'Data': i.data })), 'Gastos');
+            add((db.cartoes[user] || []).map(i => ({ 'Nome': i.nome, 'Banco': i.banco, 'Tipo': i.tipo, 'Final': i.final, 'Limite (R$)': i.limite })), 'Cartões');
+            XLSX.writeFile(wb, `relatorio_geral_completo_${user}.xlsx`);
             logAuditoria('Exportou relatório geral completo para Excel');
             return;
         }
 
-        let dataObj = [];
-        if (tab === 'renda') {
-            dataObj = [{ Tipo: 'Salário', Valor: db.salarios[user] || 0 }];
-        } else if (tab === 'entradas') {
-            dataObj = (db.entradas[user] || []).map(i => ({ Descrição: i.desc, Forma: i.forma, Valor: i.valor, Data: i.data }));
-        } else if (tab === 'dividas') {
-            dataObj = (db.dividas[user] || []).map(i => ({ Título: i.titulo, Tipo: i.tipo, Forma: i.forma, Valor: i.valor, 'Término Previsto': i.terminoPrevisto }));
-        } else if (tab === 'gastos') {
-            dataObj = (db.gastos[user] || []).map(i => ({ Descrição: i.desc, Categoria: i.categoria, Forma: i.forma, Valor: i.valor, Data: i.data }));
-        } else if (tab === 'cartoes') {
-            dataObj = (db.cartoes[user] || []).map(i => ({ Nome: i.nome, Banco: i.banco, Tipo: i.tipo, Final: i.final, Limite: i.limite }));
-        } else if (tab === 'auditoria') {
-            dataObj = db.auditoria.map(i => ({ Data: i.data, Hora: i.hora, Usuário: i.usuario, Ação: i.acao }));
-        }
+        let rows = [];
+        if (tab === 'renda') rows = [{ Tipo: 'Salário', Valor: db.salarios[user] || 0 }];
+        else if (tab === 'entradas') rows = (db.entradas[user] || []).map(i => ({ Descrição: i.desc, Forma: i.forma, Valor: i.valor, Data: i.data }));
+        else if (tab === 'dividas') rows = (db.dividas[user] || []).map(i => ({ Título: i.titulo, Tipo: i.tipo, Forma: i.forma, Valor: i.valor, 'Término Previsto': i.terminoPrevisto, Pago: i.pago ? 'Sim' : 'Não' }));
+        else if (tab === 'gastos') rows = (db.gastos[user] || []).map(i => ({ Descrição: i.desc, Categoria: i.categoria, Forma: i.forma, Valor: i.valor, Data: i.data }));
+        else if (tab === 'cartoes') rows = (db.cartoes[user] || []).map(i => ({ Nome: i.nome, Banco: i.banco, Tipo: i.tipo, Final: i.final, Limite: i.limite }));
+        else if (tab === 'auditoria') rows = db.auditoria.map(i => ({ Data: i.data, Hora: i.hora, Usuário: i.usuario, Ação: i.acao }));
 
-        if (dataObj.length === 0) {
-            alert('Não há dados para exportar nesta janela.');
-            return;
-        }
-
-        const ws = XLSX.utils.json_to_sheet(dataObj);
-        XLSX.utils.book_append_sheet(wb, ws, tab.toUpperCase());
-        XLSX.writeFile(wb, fileName);
+        if (rows.length === 0) { alert('Não há dados para exportar nesta janela.'); return; }
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), tab.toUpperCase());
+        XLSX.writeFile(wb, `relatorio_${tab}_${user}.xlsx`);
         logAuditoria(`Exportou dados de ${tab} para Excel`);
     }
 
@@ -1304,173 +854,69 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const user = db.currentUser;
+        const head = { fillColor: [93, 64, 55] };
+        const R = v => `R$ ${v.toFixed(2)}`;
 
         if (tab === 'geral') {
-            doc.setFontSize(18);
-            doc.text(`Relatório Geral Financeiro - ${user}`, 14, 20);
-            doc.setFontSize(10);
-            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
-
-            let startY = 36;
-
-            // 1. Renda
+            doc.setFontSize(18); doc.text(`Relatório Geral Financeiro - ${user}`, 14, 20);
+            doc.setFontSize(10); doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
             doc.setFontSize(12);
-            doc.text('1. Renda (Salário)', 14, startY);
-            doc.autoTable({
-                head: [['Métrica', 'Valor']],
-                body: [['Salário Mensal', `R$ ${(db.salarios[user] || 0).toFixed(2)}`]],
-                startY: startY + 4,
-                theme: 'grid',
-                headStyles: { fillColor: [93, 64, 55] }
+            const secoes = [
+                ['1. Renda (Salário)', ['Métrica', 'Valor'], [['Salário Mensal', R(db.salarios[user] || 0)]], ['Sem dados', '-']],
+                ['2. Entradas de Dinheiro', ['Descrição', 'Forma', 'Valor', 'Data'], (db.entradas[user] || []).map(i => [i.desc, i.forma, R(i.valor), i.data]), ['Nenhuma entrada', '-', '-', '-']],
+                ['3. Dívidas Fixas', ['Título', 'Tipo', 'Forma', 'Valor', 'Término'], (db.dividas[user] || []).map(i => [i.titulo, i.tipo, i.forma, R(i.valor), i.terminoPrevisto]), ['Nenhuma dívida', '-', '-', '-', '-']],
+                ['4. Gastos', ['Descrição', 'Categoria', 'Forma', 'Valor', 'Data'], (db.gastos[user] || []).map(i => [i.desc, i.categoria, i.forma, R(i.valor), i.data]), ['Nenhum gasto', '-', '-', '-', '-']],
+                ['5. Cartões', ['Nome', 'Banco', 'Tipo', 'Final', 'Limite'], (db.cartoes[user] || []).map(i => [i.nome, i.banco, i.tipo, i.final, R(i.limite)]), ['Nenhum cartão', '-', '-', '-', '-']]
+            ];
+            let y = 36;
+            secoes.forEach(([titulo, cols, rows, vazio], idx) => {
+                if (idx > 0) { y = doc.lastAutoTable.finalY + 10; if (y > 250) { doc.addPage(); y = 20; } }
+                doc.text(titulo, 14, y);
+                doc.autoTable({ head: [cols], body: rows.length ? rows : [vazio], startY: y + 4, theme: 'grid', headStyles: head });
             });
-
-            // 2. Entradas
-            let finalY = doc.lastAutoTable.finalY + 10;
-            doc.text('2. Entradas de Dinheiro', 14, finalY);
-            const entradasRows = (db.entradas[user] || []).map(i => [i.desc, i.forma, `R$ ${i.valor.toFixed(2)}`, i.data]);
-            doc.autoTable({
-                head: [['Descrição', 'Forma', 'Valor', 'Data']],
-                body: entradasRows.length > 0 ? entradasRows : [['Nenhuma entrada', '-', '-', '-']],
-                startY: finalY + 4,
-                theme: 'grid',
-                headStyles: { fillColor: [93, 64, 55] }
-            });
-
-            // 3. Dívidas Fixas
-            finalY = doc.lastAutoTable.finalY + 10;
-            if (finalY > 250) { doc.addPage(); finalY = 20; }
-            doc.text('3. Dívidas Fixas', 14, finalY);
-            const dividasRows = (db.dividas[user] || []).map(i => [i.titulo, i.tipo, i.forma, `R$ ${i.valor.toFixed(2)}`, i.terminoPrevisto]);
-            doc.autoTable({
-                head: [['Título', 'Tipo', 'Forma', 'Valor', 'Término']],
-                body: dividasRows.length > 0 ? dividasRows : [['Nenhuma dívida', '-', '-', '-', '-']],
-                startY: finalY + 4,
-                theme: 'grid',
-                headStyles: { fillColor: [93, 64, 55] }
-            });
-
-            // 4. Gastos
-            finalY = doc.lastAutoTable.finalY + 10;
-            if (finalY > 250) { doc.addPage(); finalY = 20; }
-            doc.text('4. Gastos', 14, finalY);
-            const gastosRows = (db.gastos[user] || []).map(i => [i.desc, i.categoria, i.forma, `R$ ${i.valor.toFixed(2)}`, i.data]);
-            doc.autoTable({
-                head: [['Descrição', 'Categoria', 'Forma', 'Valor', 'Data']],
-                body: gastosRows.length > 0 ? gastosRows : [['Nenhum gasto', '-', '-', '-', '-']],
-                startY: finalY + 4,
-                theme: 'grid',
-                headStyles: { fillColor: [93, 64, 55] }
-            });
-
-            // 5. Cartões
-            finalY = doc.lastAutoTable.finalY + 10;
-            if (finalY > 250) { doc.addPage(); finalY = 20; }
-            doc.text('5. Cartões', 14, finalY);
-            const cartoesRows = (db.cartoes[user] || []).map(i => [i.nome, i.banco, i.tipo, i.final, `R$ ${i.limite.toFixed(2)}`]);
-            doc.autoTable({
-                head: [['Nome', 'Banco', 'Tipo', 'Final', 'Limite']],
-                body: cartoesRows.length > 0 ? cartoesRows : [['Nenhum cartão', '-', '-', '-', '-']],
-                startY: finalY + 4,
-                theme: 'grid',
-                headStyles: { fillColor: [93, 64, 55] }
-            });
-
             doc.save(`relatorio_geral_completo_${user}.pdf`);
             logAuditoria('Exportou relatório geral completo para PDF');
             return;
         }
 
-        doc.setFontSize(16);
-        doc.text(`Relatório de ${tab.toUpperCase()} - ${user}`, 14, 20);
-        doc.setFontSize(10);
-        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
+        doc.setFontSize(16); doc.text(`Relatório de ${tab.toUpperCase()} - ${user}`, 14, 20);
+        doc.setFontSize(10); doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
+        let columns = [], rows = [];
+        if (tab === 'renda') { columns = ['Métrica', 'Valor']; rows = [['Salário', R(db.salarios[user] || 0)]]; }
+        else if (tab === 'entradas') { columns = ['Descrição', 'Forma', 'Valor', 'Data']; rows = (db.entradas[user] || []).map(i => [i.desc, i.forma, R(i.valor), i.data]); }
+        else if (tab === 'dividas') { columns = ['Título', 'Tipo', 'Forma', 'Valor', 'Término']; rows = (db.dividas[user] || []).map(i => [i.titulo, i.tipo, i.forma, R(i.valor), i.terminoPrevisto]); }
+        else if (tab === 'gastos') { columns = ['Descrição', 'Categoria', 'Forma', 'Valor', 'Data']; rows = (db.gastos[user] || []).map(i => [i.desc, i.categoria, i.forma, R(i.valor), i.data]); }
+        else if (tab === 'cartoes') { columns = ['Nome', 'Banco', 'Tipo', 'Final', 'Limite']; rows = (db.cartoes[user] || []).map(i => [i.nome, i.banco, i.tipo, i.final, R(i.limite)]); }
+        else if (tab === 'auditoria') { columns = ['Data', 'Hora', 'Usuário', 'Ação']; rows = db.auditoria.map(i => [i.data, i.hora, i.usuario, i.acao]); }
 
-        let columns = [];
-        let rows = [];
-
-        if (tab === 'renda') {
-            columns = ['Métrica', 'Valor'];
-            rows = [['Salário', `R$ ${(db.salarios[user] || 0).toFixed(2)}`]];
-        } else if (tab === 'entradas') {
-            columns = ['Descrição', 'Forma', 'Valor', 'Data'];
-            rows = (db.entradas[user] || []).map(i => [i.desc, i.forma, `R$ ${i.valor.toFixed(2)}`, i.data]);
-        } else if (tab === 'dividas') {
-            columns = ['Título', 'Tipo', 'Forma', 'Valor', 'Término'];
-            rows = (db.dividas[user] || []).map(i => [i.titulo, i.tipo, i.forma, `R$ ${i.valor.toFixed(2)}`, i.terminoPrevisto]);
-        } else if (tab === 'gastos') {
-            columns = ['Descrição', 'Categoria', 'Forma', 'Valor', 'Data'];
-            rows = (db.gastos[user] || []).map(i => [i.desc, i.categoria, i.forma, `R$ ${i.valor.toFixed(2)}`, i.data]);
-        } else if (tab === 'cartoes') {
-            columns = ['Nome', 'Banco', 'Tipo', 'Final', 'Limite'];
-            rows = (db.cartoes[user] || []).map(i => [i.nome, i.banco, i.tipo, i.final, `R$ ${i.limite.toFixed(2)}`]);
-        } else if (tab === 'auditoria') {
-            columns = ['Data', 'Hora', 'Usuário', 'Ação'];
-            rows = db.auditoria.map(i => [i.data, i.hora, i.usuario, i.acao]);
-        }
-
-        if (rows.length === 0) {
-            alert('Não há dados para exportar nesta janela.');
-            return;
-        }
-
-        doc.autoTable({
-            head: [columns],
-            body: rows,
-            startY: 35,
-            theme: 'grid',
-            headStyles: { fillColor: [93, 64, 55] }
-        });
-
+        if (rows.length === 0) { alert('Não há dados para exportar nesta janela.'); return; }
+        doc.autoTable({ head: [columns], body: rows, startY: 35, theme: 'grid', headStyles: head });
         doc.save(`${tab}_${user}.pdf`);
         logAuditoria(`Exportou dados de ${tab} para PDF`);
     }
-
-    // --- DROPDOWN DE EXPORTAÇÃO ---
-    function toggleDropdown(id) {
-        // Fecha todos os outros dropdowns
-        document.querySelectorAll('[id$="Dropdown"], [id^="excelDropdown"], [id^="pdfDropdown"]').forEach(el => {
-            if (el.id !== id && el.id !== 'notifDropdown') el.classList.add('hidden');
-        });
-        const drop = document.getElementById(id);
-        if (drop) drop.classList.toggle('hidden');
-    }
-
-    // Fechar dropdowns ao clicar fora
-    window.addEventListener('click', function(e) {
-        if (!e.target.closest('button')) {
-            document.querySelectorAll('[id$="Dropdown"], [id^="excelDropdown"], [id^="pdfDropdown"]').forEach(el => {
-                if (el.id !== 'notifDropdown') el.classList.add('hidden');
-            });
-        }
-    });
 
     // --- AUDITORIA ---
     function logAuditoria(acao) {
         if (!db.currentUser) return;
         const agora = new Date();
-        const data = agora.toLocaleDateString('pt-BR');
-        const hora = agora.toLocaleTimeString('pt-BR');
-        db.auditoria.unshift({ data, hora, usuario: db.currentUser, acao });
+        db.auditoria.unshift({ data: agora.toLocaleDateString('pt-BR'), hora: agora.toLocaleTimeString('pt-BR'), usuario: db.currentUser, acao });
         if (db.auditoria.length > 50) db.auditoria.pop();
         saveData();
+        renderAuditoria();
     }
 
     function renderAuditoria() {
         const tbody = document.getElementById('tabelaAuditoriaBody');
         tbody.innerHTML = '';
-        if (db.auditoria.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-marrom-500">Nenhum registro de auditoria.</td></tr>';
-            return;
-        }
+        if (db.auditoria.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-marrom-500">Nenhum registro de auditoria.</td></tr>'; return; }
         db.auditoria.forEach(item => {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-marrom-50/50';
             tr.innerHTML = `
-                    <td class="p-4 text-marrom-600">${item.data}</td>
-                    <td class="p-4 text-marrom-600">${item.hora}</td>
-                    <td class="p-4 font-semibold text-marrom-900">${item.usuario}</td>
-                    <td class="p-4 text-marrom-800">${item.acao}</td>
-                `;
+      <td class="p-4 text-marrom-600">${item.data}</td>
+      <td class="p-4 text-marrom-600">${item.hora}</td>
+      <td class="p-4 font-semibold text-marrom-900">${item.usuario}</td>
+      <td class="p-4 text-marrom-800">${item.acao}</td>`;
             tbody.appendChild(tr);
         });
     }
@@ -1479,84 +925,74 @@
     function renderDeleteUserList() {
         const container = document.getElementById('deleteUserList');
         container.innerHTML = '';
-        if (db.usuarios.length === 0) {
-            container.innerHTML = '<p class="text-sm text-marrom-500">Nenhum usuário cadastrado.</p>';
-            return;
-        }
+        if (db.usuarios.length === 0) { container.innerHTML = '<p class="text-sm text-marrom-500">Nenhum usuário cadastrado.</p>'; return; }
         db.usuarios.forEach(user => {
-            const div = document.createElement('div');
-            div.className = 'flex items-center justify-between p-3 border border-marrom-200 rounded-xl bg-marrom-50';
-            div.innerHTML = `
-                    <span class="font-medium text-sm text-marrom-900">${user}</span>
-                    <button onclick="deleteUser('${user}')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">Apagar</button>
-                `;
-            container.appendChild(div);
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between p-3 bg-marrom-50 rounded-xl border border-marrom-100';
+            row.innerHTML = `<span class="font-semibold text-sm">${user}</span>
+      <button class="bg-rose-700 hover:bg-rose-800 text-white text-xs px-3 py-1.5 rounded-lg">Apagar</button>`;
+            row.querySelector('button').onclick = () => deleteUser(user);
+            container.appendChild(row);
         });
     }
 
     function deleteUser(user) {
         if (confirm(`Deseja realmente apagar o usuário ${user} e todos os seus dados?`)) {
             db.usuarios = db.usuarios.filter(u => u !== user);
-            delete db.salarios[user];
-            delete db.entradas[user];
-            delete db.dividas[user];
-            delete db.gastos[user];
-            delete db.cartoes[user];
+            delete db.salarios[user]; delete db.entradas[user]; delete db.dividas[user]; delete db.gastos[user]; delete db.cartoes[user];
             saveData();
-            renderDeleteUserList();
-            if (db.currentUser === user) {
-                logout();
-            } else {
-                renderLoginScreen();
-            }
+            if (db.currentUser === user) logout(); else { renderDeleteUserList(); renderLoginScreen(); }
         }
     }
 
-    // --- NOTIFICAÇÕES ---
-    function toggleNotifications() {
-        const dropdown = document.getElementById('notifDropdown');
-        dropdown.classList.toggle('hidden');
+    // --- DROPDOWNS DE EXPORTAÇÃO ---
+    const DROPS = '[id^="excelDropdown"], [id^="pdfDropdown"]';
+    function toggleDropdown(id) {
+        document.querySelectorAll(DROPS).forEach(el => { if (el.id !== id) el.classList.add('hidden'); });
+        const drop = document.getElementById(id);
+        if (drop) drop.classList.toggle('hidden');
     }
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('button')) document.querySelectorAll(DROPS).forEach(el => el.classList.add('hidden'));
+    });
+
+    // --- NOTIFICAÇÕES ---
+    function toggleNotifications() { document.getElementById('notifDropdown').classList.toggle('hidden'); }
 
     function checkNearDueDates() {
         const dividas = db.dividas[db.currentUser] || [];
         const notifList = document.getElementById('notifList');
         const badge = document.getElementById('notifBadge');
-
         let count = 0;
         notifList.innerHTML = '';
-
         const hoje = new Date();
+
         dividas.forEach(d => {
-            if (d.data) {
-                const dtVenc = new Date(d.data);
-                const diffTime = dtVenc - hoje;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays >= 0 && diffDays <= 3) {
-                    count++;
-                    const item = document.createElement('div');
-                    item.className = 'p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-900';
-                    item.innerHTML = `<strong>Atenção:</strong> A dívida <em>${d.titulo}</em> vence em breve (${d.data.split('-').reverse().join('/')}).`;
-                    notifList.appendChild(item);
-
+            const venc = d.vencimento || d.data;
+            if (!venc || d.pago) return;
+            const diffDays = Math.ceil((new Date(venc + 'T23:59:59') - hoje) / 86400000);
+            if (diffDays >= 0 && diffDays <= 3) {
+                count++;
+                const item = document.createElement('div');
+                item.className = 'p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-900';
+                item.innerHTML = `<strong>Atenção:</strong> A dívida <em>${d.titulo}</em> vence em breve (${fmtData(venc)}).`;
+                notifList.appendChild(item);
+                try {
                     if ('Notification' in window && Notification.permission === 'granted') {
-                        new Notification('Alerta de Vencimento', {
-                            body: `A parcela da dívida "${d.titulo}" vence no dia ${d.data.split('-').reverse().join('/')}.`,
-                            icon: './icon-192.png'
-                        });
+                        new Notification('Alerta de Vencimento', { body: `A dívida "${d.titulo}" vence no dia ${fmtData(venc)}.`, icon: './icon-192.png' });
                     }
-                }
+                } catch (err) { /* Android Chrome só permite via service worker */ }
+            } else if (diffDays < 0) {
+                count++;
+                const item = document.createElement('div');
+                item.className = 'p-2 bg-amber-100 border border-amber-300 rounded-lg text-amber-900';
+                item.innerHTML = `<strong>Divida Pendente:</strong> <em>${d.titulo}</em> venceu em ${fmtData(venc)}.`;
+                notifList.appendChild(item);
             }
         });
 
-        if (count > 0) {
-            badge.innerText = count;
-            badge.classList.remove('hidden');
-        } else {
-            notifList.innerHTML = '<p class="text-marrom-500 text-center py-2">Nenhuma notificação de vencimento próximo.</p>';
-            badge.classList.add('hidden');
-        }
+        if (count > 0) { badge.innerText = count; badge.classList.remove('hidden'); }
+        else { notifList.innerHTML = '<p class="text-marrom-500 text-center py-2">Nenhuma notificação de vencimento próximo.</p>'; badge.classList.add('hidden'); }
     }
 </script>
 </body>
