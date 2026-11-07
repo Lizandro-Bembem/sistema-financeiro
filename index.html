@@ -6,7 +6,7 @@
     <title>Sistema Financeiro - Família Bembem</title>
     <meta name="description" content="Organização das finanças da família. Funciona offline e pode ser instalado no celular.">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="icon" href="data:,">
     <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="theme-color" content="#5d4037">
     <meta name="mobile-web-app-capable" content="yes">
@@ -203,7 +203,7 @@
 
 <div class="app">
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><img src="icon-192.png" alt=""><span class="tx">Família Bembem</span></div>
+        <div class="brand"><span class="tx">Família Bembem</span></div>
         <div class="dd ucwrap">
             <button type="button" class="usercard" data-dd id="btnUserCard" aria-label="Menu do usuário"><span class="av" id="userInitial">U</span><span class="tx"><b id="userNameDisplay">Usuário</b><small>● Online ▾</small></span></button>
             <div class="menu" hidden><button type="button" id="btnEmail">E-mail de recuperação</button><button type="button" id="btnSair">Sair do usuário</button></div>
@@ -250,7 +250,7 @@
 <nav class="bnav" id="bnav" aria-label="Navegação principal"></nav>
 
 <div class="barra" id="barraInstalar" hidden role="region" aria-label="Instalar aplicativo">
-    <div class="inf"><img src="icon-192.png" alt=""><div><strong>Financeiro Bembem</strong><span>Instale para usar como aplicativo</span></div></div>
+    <div class="inf"><div><strong>Financeiro Bembem</strong><span>Instale para usar como aplicativo</span></div></div>
     <div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn prim" id="btnInstalarBarra">Instalar</button><button class="x" id="btnFecharBarra" aria-label="Fechar">✕</button></div>
 </div>
 
@@ -322,7 +322,7 @@
     <div class="dact"><button class="btn lt" id="cfNao">Cancelar</button><button class="btn dng" id="cfSim">Sim, remover</button></div></div></dialog>
 
 <dialog id="dlgInstalar"><div class="dbody"><h3>Instalar aplicativo</h3>
-    <div class="inst"><img src="icon-192.png" alt="Ícone do aplicativo"><p id="textoInstalar"></p></div>
+    <div class="inst"><p id="textoInstalar"></p></div>
     <div class="dact"><button class="btn lt" data-close>Fechar</button><button class="btn prim" id="btnInstalarAgora" hidden>Instalar agora</button></div></div></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

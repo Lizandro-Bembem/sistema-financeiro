@@ -1,4 +1,4 @@
-const CACHE = 'financeiro-v6';
+const CACHE = 'financeiro-v7';
 const LOCAIS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './fundo.jpg'];
 const EXTERNOS = [
     'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
