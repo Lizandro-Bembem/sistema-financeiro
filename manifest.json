@@ -2,7 +2,7 @@
   "name": "Sistema Financeiro - Família Bembem",
   "short_name": "Financeiro",
   "description": "Organização das finanças da família",
-  "id": "./index.html",
+  "id": "sistema-financeiro-bembem",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

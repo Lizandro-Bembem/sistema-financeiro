@@ -1,4 +1,5 @@
-const CACHE = 'financeiro-v8';
+const PREFIXO = 'sistema-financeiro-';
+const CACHE = PREFIXO + 'v9';
 const LOCAIS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './fundo.jpg'];
 const EXTERNOS = [
     'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
@@ -15,7 +16,7 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
     e.waitUntil(
-        caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+        caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith(PREFIXO) && k !== CACHE).map((k) => caches.delete(k))))
     );
     self.clients.claim();
 });
