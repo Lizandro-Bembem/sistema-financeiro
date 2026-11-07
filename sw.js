@@ -1,5 +1,5 @@
-const CACHE = 'financeiro-v7';
-const LOCAIS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './fundo.jpg'];
+const CACHE = 'financeiro-v8';
+const LOCAIS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './fundo.jpg'];
 const EXTERNOS = [
     'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
