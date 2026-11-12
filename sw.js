@@ -1,5 +1,5 @@
 const PREFIXO = 'sistema-financeiro-';
-const CACHE = PREFIXO + 'v9';
+const CACHE = PREFIXO + 'v11';
 const LOCAIS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './fundo.jpg'];
 const EXTERNOS = [
     'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',

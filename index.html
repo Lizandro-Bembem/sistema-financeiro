@@ -124,13 +124,15 @@
         .vazio{padding:26px;text-align:center;color:var(--m500)}
         .tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.72rem;font-weight:700}
         .tag.ok{background:#d1fae5;color:#065f46}.tag.at{background:#fcd34d;color:#78350f}
-        .ib{background:none;border:0;color:var(--r);padding:4px;border-radius:6px}.ib:hover{background:#ffe4e6}
+        .ib{background:none;border:0;color:var(--r);padding:4px;border-radius:6px}.ib:hover{background:#ffe4e6}.ib.ed{color:var(--m700)}.ib.ed:hover{background:var(--m100)}
         .lk{background:none;border:0;color:var(--m600);text-decoration:underline;font-size:.74rem;margin-left:6px}
         .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-        .cc{background:linear-gradient(135deg,#6d4c41,#3e2723);color:#fff;border-radius:16px;padding:18px;height:170px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 6px 16px rgba(62,39,35,.25)}
-        .cc small{color:var(--m300);text-transform:uppercase;letter-spacing:.06em;font-size:.68rem}
-        .cc .ib{color:var(--m200)}.cc .ib:hover{background:rgba(255,255,255,.15)}
+        .cc{background:linear-gradient(135deg,var(--c1,#6d4c41),var(--c2,#3e2723));color:#fff;border-radius:16px;padding:18px;height:170px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 6px 16px rgba(62,39,35,.25)}
+        .cc small{color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.06em;font-size:.68rem}
+        .cc .ib{color:rgba(255,255,255,.85)}.cc .ib:hover{background:rgba(255,255,255,.15)}
         .cc .num{font-family:ui-monospace,monospace;font-size:1.1rem;letter-spacing:.16em}
+        .cc.claro{color:#2b1b17}.cc.claro small{color:rgba(43,27,23,.72)}.cc.claro .ib{color:rgba(43,27,23,.75)}.cc.claro .ib:hover{background:rgba(0,0,0,.08)}
+        .cc-prev{height:34px;border-radius:10px;background:linear-gradient(135deg,var(--c1,#6d4c41),var(--c2,#3e2723));border:1px solid var(--m200)}
         .urow{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--m50);border:1px solid var(--m100);border-radius:12px}
 
         /* ---- Modais ---- */
@@ -142,6 +144,10 @@
         dialog input,dialog select{font:inherit;font-size:.85rem;font-weight:400;text-transform:none;padding:8px 10px;border:1px solid var(--m200);border-radius:8px;background:#fff;color:var(--m900);width:100%}
         dialog input:focus,dialog select:focus,.salbox input:focus{outline:none;border-color:var(--m700);box-shadow:0 0 0 3px rgba(109,76,65,.18)}
         dialog input:disabled,dialog select:disabled{background:var(--m100);color:var(--m500)}
+        .pw{position:relative;display:block}
+        dialog .pw input{padding-right:86px}
+        .pw-btn{position:absolute;right:5px;top:50%;transform:translateY(-50%);border:0;background:var(--m100);color:var(--m800);font:inherit;font-size:.72rem;font-weight:600;text-transform:none;letter-spacing:0;padding:4px 10px;border-radius:6px}
+        .pw-btn:hover{background:var(--m200)}
         .grid2{display:grid;gap:12px}
         .dact{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:4px}
         .seg{display:flex;gap:8px}
@@ -286,37 +292,40 @@
     <p class="erro" id="erroEmail" hidden></p>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim">Salvar</button></div></form></dialog>
 
-<dialog id="dlgEntrada"><form id="fEntrada"><h3>Nova entrada de dinheiro</h3>
+<dialog id="dlgEntrada"><form id="fEntrada"><h3 id="entTituloDlg">Nova entrada de dinheiro</h3>
     <label>Descrição<input id="entDesc" required></label>
     <label>Forma de recebimento<select id="entForma"><option>Pix</option><option>Dinheiro Físico</option><option>Transferência</option><option>Boleto Bancário</option><option>Código de Barras</option></select></label>
     <label>Valor (R$)<input type="number" step="0.01" min="0.01" id="entValor" required></label>
     <label>Data<input type="date" id="entData" required></label>
-    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim">Salvar</button></div></form></dialog>
+    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="entSalvarBtn">Salvar</button></div></form></dialog>
 
-<dialog id="dlgDivida"><form id="fDivida"><h3>Adicionar dívida fixa</h3>
+<dialog id="dlgDivida"><form id="fDivida"><h3 id="divTituloDlg">Adicionar dívida fixa</h3>
     <label>Título da dívida<input id="divTitulo" required></label>
     <label>Tipo<div class="seg"><button type="button" id="tpProduto" data-tp="Produto" class="on">Produto</button><button type="button" id="tpServico" data-tp="Serviço">Serviço</button></div></label>
     <div id="pgDiv" class="grid2"></div>
     <label><span id="divValorLbl">Valor (R$)</span><input type="number" step="0.01" min="0.01" id="divValor" required></label>
     <label>Data em que começou<input type="date" id="divData" required></label>
     <div class="prev" id="divPrev" hidden></div>
-    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim">Salvar</button></div></form></dialog>
+    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="divSalvarBtn">Salvar</button></div></form></dialog>
 
-<dialog id="dlgGasto"><form id="fGasto"><h3>Registrar gasto</h3>
+<dialog id="dlgGasto"><form id="fGasto"><h3 id="gastoTituloDlg">Registrar gasto</h3>
     <label>Descrição<input id="gastoDesc" required></label>
     <label>Categoria<select id="gastoCat"><option>Alimentação</option><option>Saúde</option><option>Lazer</option><option>Transporte</option><option>Outros</option></select></label>
     <div id="pgGasto" class="grid2"></div>
     <label><span id="gastoValorLbl">Valor total à vista (R$)</span><input type="number" step="0.01" min="0.01" id="gastoValor" required></label>
     <label>Data<input type="date" id="gastoData" required></label>
-    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim">Salvar</button></div></form></dialog>
+    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="gastoSalvarBtn">Salvar</button></div></form></dialog>
 
-<dialog id="dlgCartao"><form id="fCartao"><h3>Adicionar cartão</h3>
+<dialog id="dlgCartao"><form id="fCartao"><h3 id="cartTituloDlg">Adicionar cartão</h3>
     <label>Nome do cartão<input id="cartaoNome" required placeholder="Ex: Nubank Platinum"></label>
-    <label>Banco<input id="cartaoBanco" required placeholder="Ex: Nubank"></label>
+    <label>Banco / cor do cartão<select id="cartaoBanco" required><option value="" disabled selected>Selecione...</option><option>Nubank</option><option>Inter</option><option>Itaú</option><option>Bradesco</option><option>Bradesco Black</option><option>Caixa</option><option>Alimentação</option><option>Outro</option></select></label>
+    <label id="cartaoOutroBox" hidden>Nome do banco<input id="cartaoBancoOutro" maxlength="40" placeholder="Ex: Santander"></label>
+    <label id="cartaoCorBox" hidden>Escolha a cor do cartão<input type="color" id="cartaoCor" value="#2e7d32" style="height:38px;padding:3px"></label>
+    <div id="cartaoPrev" class="cc-prev" title="Prévia da cor"></div>
     <label>Tipo<select id="cartaoTipo"><option>Crédito e Débito</option><option>Apenas Crédito</option><option>Apenas Débito</option></select></label>
     <label>Final (4 dígitos)<input id="cartaoFinal" required maxlength="4" inputmode="numeric" pattern="\d{4}" placeholder="1234"></label>
     <label>Limite (R$)<input type="number" step="0.01" min="0" id="cartaoLimite" required></label>
-    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim">Salvar</button></div></form></dialog>
+    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="cartSalvarBtn">Salvar</button></div></form></dialog>
 
 <dialog id="dlgConfirm"><div class="dbody"><h3 id="cfTitulo"></h3><p id="cfMsg" style="font-size:.86rem;color:var(--m700)"></p>
     <div class="dact"><button class="btn lt" id="cfNao">Cancelar</button><button class="btn dng" id="cfSim">Sim, remover</button></div></div></dialog>
@@ -355,6 +364,7 @@
         sino:'<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>',
         mais:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
         lixo:'<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>',
+        editar:'<path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>',
         mais2:'<path d="M12 4v16m8-8H4"/>',
         salvar:'<path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3M12 4v12m0 0l-4-4m4 4l4-4"/>',
         restaurar:'<path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3M12 16V4m0 0L8 8m4-4l4 4"/>'
@@ -376,7 +386,7 @@
         let d={};try{d=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
         return normalizar(d);
     }
-    let db=load(),currentTab='renda',previousTab='renda',divTipo='Produto';
+    let db=load(),currentTab='renda',previousTab='renda',divTipo='Produto',divEditId=null,entEditId=null,gastoEditId=null,cartEditId=null;
     const L=k=>db[k][db.currentUser]||[];
     function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('Não foi possível salvar os dados neste navegador.')}}
     function toast(m,ms=3000){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),ms)}
@@ -589,8 +599,10 @@
     function vazioRow(cols,msg){return `<tr><td colspan="${cols}" class="vazio">${msg}</td></tr>`}
     function renderEntradas(){
         const a=L('entradas');
-        $('#bEntradas').innerHTML=a.length?a.map(i=>`<tr><td><b>${esc(i.desc)}</b></td><td>${esc(i.forma)}</td><td style="color:var(--g);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(i.data)}</td><td class="r">${delBtn('entradas',i.id)}</td></tr>`).join(''):vazioRow(5,'Nenhuma entrada cadastrada.');
+        $('#bEntradas').innerHTML=a.length?a.map(i=>`<tr><td><b>${esc(i.desc)}</b></td><td>${esc(i.forma)}</td><td style="color:var(--g);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(i.data)}</td><td class="r">${edBtn('entradas',i.id)}${delBtn('entradas',i.id)}</td></tr>`).join(''):vazioRow(5,'Nenhuma entrada cadastrada.');
     }
+    const NOMES_ED={dividas:'dívida',entradas:'entrada',gastos:'gasto',cartoes:'cartão'};
+    const edBtn=(k,id)=>`<button class="ib ed" data-edit="${k}" data-id="${id}" title="Editar ${NOMES_ED[k]}" aria-label="Editar ${NOMES_ED[k]}">${ic('editar','ic" style="width:17px;height:17px')}</button>`;
     const atrasada=d=>{const v=d.vencimento||d.data;return !d.pago&&v&&new Date(v+'T23:59:59')<new Date()};
     function renderDividas(){
         const a=L('dividas');
@@ -599,15 +611,15 @@
             const st=i.pago?`<span class="tag ok">Pago</span><button class="lk" data-pago="${i.id}">Desfazer</button>`
                 :`<div class="row" style="gap:8px">${at?'<span class="tag at">Dívida pendente</span>':''}<button class="btn prim sm" data-pago="${i.id}" style="background:var(--g);border-color:var(--g)">Marcar pago</button></div>`;
             const info=[i.tipo,i.forma,i.parcelado==='Sim'?`${i.vezes}x`:''].filter(Boolean).map(esc).join(' • ');
-            return `<tr class="${at?'atr':''}"><td><b>${esc(i.titulo)}</b><small>${info}</small></td><td style="color:var(--r);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(v)}</td><td>${st}</td><td class="r">${delBtn('dividas',i.id)}</td></tr>`}).join(''):vazioRow(5,'Nenhuma dívida fixa cadastrada.');
+            return `<tr class="${at?'atr':''}"><td><b>${esc(i.titulo)}</b><small>${info}</small></td><td style="color:var(--r);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(v)}</td><td>${st}</td><td class="r">${edBtn('dividas',i.id)}${delBtn('dividas',i.id)}</td></tr>`}).join(''):vazioRow(5,'Nenhuma dívida fixa cadastrada.');
     }
     function renderGastos(){
         const a=L('gastos');
-        $('#bGastos').innerHTML=a.length?a.map(i=>`<tr><td><b>${esc(i.desc)}</b></td><td>${esc(i.categoria)}</td><td>${esc(i.forma)}${i.parcelado==='Sim'?`<small>${i.vezes}x de ${BRL(i.valor/i.vezes)}</small>`:''}</td><td style="color:var(--a);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(i.data)}</td><td class="r">${delBtn('gastos',i.id)}</td></tr>`).join(''):vazioRow(6,'Nenhum gasto registrado.');
+        $('#bGastos').innerHTML=a.length?a.map(i=>`<tr><td><b>${esc(i.desc)}</b></td><td>${esc(i.categoria)}</td><td>${esc(i.forma)}${i.parcelado==='Sim'?`<small>${i.vezes}x de ${BRL(i.valor/i.vezes)}</small>`:''}</td><td style="color:var(--a);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(i.data)}</td><td class="r">${edBtn('gastos',i.id)}${delBtn('gastos',i.id)}</td></tr>`).join(''):vazioRow(6,'Nenhum gasto registrado.');
     }
     function renderCartoes(){
         const a=L('cartoes');
-        $('#gCartoes').innerHTML=a.length?a.map(c=>`<div class="cc"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><small>${esc(c.banco)}</small><h4 style="font-size:1rem">${esc(c.nome)}</h4></div>${delBtn('cartoes',c.id)}</div>
+        $('#gCartoes').innerHTML=a.length?a.map(c=>`<div class="cc${clsCartao(c)}"${varsCartao(c)}><div class="row" style="justify-content:space-between;align-items:flex-start"><div><small>${esc(c.banco)}</small><h4 style="font-size:1rem">${esc(c.nome)}</h4></div><div class="row" style="gap:2px;flex-wrap:nowrap">${edBtn('cartoes',c.id)}${delBtn('cartoes',c.id)}</div></div>
    <div><small>${esc(c.tipo)}</small><div class="row" style="justify-content:space-between;margin-top:6px"><span class="num">•••• ${esc(c.final)}</span><span style="font-size:.76rem">Limite: ${BRL(c.limite)}</span></div></div></div>`).join(''):'<p class="vazio" style="grid-column:1/-1">Nenhum cartão cadastrado.</p>';
     }
     function renderAuditoria(){
@@ -666,11 +678,100 @@
     function setTipo(t){divTipo=t;$('#tpProduto').classList.toggle('on',t==='Produto');$('#tpServico').classList.toggle('on',t==='Serviço')}
     function abrir(id){
         const d=$('#'+id),f=d.querySelector('form');if(f)f.reset();
-        if(id==='dlgEntrada')$('#entData').value=hoje();
-        if(id==='dlgDivida'){$('#divData').value=hoje();setTipo('Produto');cartaoOpts();ajusta('div')}
-        if(id==='dlgGasto'){$('#gastoData').value=hoje();cartaoOpts();ajusta('gasto')}
+        if(id==='dlgEntrada'){entEditId=null;$('#entTituloDlg').textContent='Nova entrada de dinheiro';$('#entSalvarBtn').textContent='Salvar';$('#entData').value=hoje()}
+        if(id==='dlgDivida'){divEditId=null;$('#divTituloDlg').textContent='Adicionar dívida fixa';$('#divSalvarBtn').textContent='Salvar';$('#divData').value=hoje();setTipo('Produto');cartaoOpts();ajusta('div')}
+        if(id==='dlgGasto'){gastoEditId=null;$('#gastoTituloDlg').textContent='Registrar gasto';$('#gastoSalvarBtn').textContent='Salvar';$('#gastoData').value=hoje();cartaoOpts();ajusta('gasto')}
+        if(id==='dlgCartao'){cartEditId=null;$('#cartTituloDlg').textContent='Adicionar cartão';$('#cartSalvarBtn').textContent='Salvar';ajustaBanco()}
         d.showModal();
     }
+    function preencherPagto(p,o){
+        const m=/^Cartão (Crédito|Débito) - (.*)$/.exec(o.forma||'');
+        if(m){
+            $('#'+p+'Forma').value='Cartão';$('#'+p+'TipoCartao').value=m[1];
+            const c=L('cartoes').find(x=>x.nome===m[2]);if(c)$('#'+p+'CartaoSel').value=String(c.id);
+        }else $('#'+p+'Forma').value=o.forma||'Pix';
+        if(!$('#'+p+'Forma').value)$('#'+p+'Forma').selectedIndex=0;
+        $('#'+p+'Parcelado').value=o.parcelado==='Sim'?'Sim':'Não';
+        $('#'+p+'Qtd').value=o.parcelado==='Sim'?(o.vezes||2):2;
+        ajusta(p);
+    }
+    function editarDivida(id){
+        const d=L('dividas').find(x=>String(x.id)===String(id));if(!d)return;
+        abrir('dlgDivida');
+        divEditId=String(d.id);$('#divTituloDlg').textContent='Editar dívida fixa';$('#divSalvarBtn').textContent='Salvar alterações';
+        $('#divTitulo').value=d.titulo||'';setTipo(d.tipo==='Serviço'?'Serviço':'Produto');
+        $('#divValor').value=d.valor;$('#divData').value=d.data||hoje();
+        preencherPagto('div',d);
+    }
+    function editarEntrada(id){
+        const x=L('entradas').find(i=>String(i.id)===String(id));if(!x)return;
+        abrir('dlgEntrada');
+        entEditId=String(x.id);$('#entTituloDlg').textContent='Editar entrada';$('#entSalvarBtn').textContent='Salvar alterações';
+        $('#entDesc').value=x.desc||'';$('#entForma').value=x.forma;if(!$('#entForma').value)$('#entForma').selectedIndex=0;
+        $('#entValor').value=x.valor;$('#entData').value=x.data||hoje();
+    }
+    function editarGasto(id){
+        const g=L('gastos').find(i=>String(i.id)===String(id));if(!g)return;
+        abrir('dlgGasto');
+        gastoEditId=String(g.id);$('#gastoTituloDlg').textContent='Editar gasto';$('#gastoSalvarBtn').textContent='Salvar alterações';
+        $('#gastoDesc').value=g.desc||'';$('#gastoCat').value=g.categoria;if(!$('#gastoCat').value)$('#gastoCat').selectedIndex=0;
+        $('#gastoValor').value=g.valor;$('#gastoData').value=g.data||hoje();
+        preencherPagto('gasto',g);
+    }
+    function editarCartao(id){
+        const c=L('cartoes').find(i=>String(i.id)===String(id));if(!c)return;
+        abrir('dlgCartao');
+        cartEditId=String(c.id);$('#cartTituloDlg').textContent='Editar cartão';$('#cartSalvarBtn').textContent='Salvar alterações';
+        $('#cartaoNome').value=c.nome||'';
+        const b=BANCOS.find(x=>x.k===chaveBanco(c.banco));
+        if(b)$('#cartaoBanco').value=b.n;else{$('#cartaoBanco').value='Outro';$('#cartaoBancoOutro').value=c.banco||''}
+        $('#cartaoTipo').value=c.tipo;$('#cartaoFinal').value=c.final;$('#cartaoLimite').value=c.limite;
+        if(/^#[0-9a-f]{6}$/i.test(c.cor||''))$('#cartaoCor').value=c.cor;
+        ajustaBanco();
+    }
+    function editar(k,id){({dividas:editarDivida,entradas:editarEntrada,gastos:editarGasto,cartoes:editarCartao}[k]||(()=>{}))(id)}
+
+    /* ===== Cores dos cartões ===== */
+    const BANCOS=[
+        {k:'nubank',n:'Nubank',c:['#8a05be','#4b0082']},
+        {k:'inter',n:'Inter',c:['#ff8c1a','#e65c00']},
+        {k:'itau',n:'Itaú',c:['#e8590c','#a8410a']},
+        {k:'bradesco',n:'Bradesco',c:['#d32f2f','#8e1b1b']},
+        {k:'bradescoBlack',n:'Bradesco Black',c:['#3a3a3a','#000000']},
+        {k:'caixa',n:'Caixa',c:['#1e6fd9','#0b3d91']},
+        {k:'alimentacao',n:'Alimentação',c:['#2e7d32','#1b5e20']}
+    ];
+    const semAcento=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    function chaveBanco(b){
+        const t=semAcento(b);
+        if(/nubank/.test(t))return 'nubank';
+        if(/bradesco/.test(t))return /black/.test(t)?'bradescoBlack':'bradesco';
+        if(/\binter\b/.test(t))return 'inter';
+        if(/itau/.test(t))return 'itau';
+        if(/caixa/.test(t))return 'caixa';
+        if(/alimenta/.test(t))return 'alimentacao';
+        return null;
+    }
+    const HEX=/^#[0-9a-f]{6}$/i;
+    const lumin=h=>{const n=parseInt(h.slice(1),16);return .299*(n>>16)+.587*(n>>8&255)+.114*(n&255)};
+    function escurecer(h,f=.35){const n=parseInt(h.slice(1),16),m=v=>Math.round(v*(1-f)).toString(16).padStart(2,'0');return '#'+m(n>>16)+m(n>>8&255)+m(n&255)}
+    function estiloCartao(c){
+        const b=BANCOS.find(x=>x.k===chaveBanco(c.banco));if(!b)return null;
+        let [c1,c2]=b.c;
+        if(b.k==='alimentacao'&&HEX.test(c.cor||'')){c1=c.cor;c2=escurecer(c.cor)}
+        return {c1,c2,claro:(lumin(c1)+lumin(c2))/2>150};
+    }
+    const clsCartao=c=>{const e=estiloCartao(c);return e&&e.claro?' claro':''};
+    const varsCartao=c=>{const e=estiloCartao(c);return e?` style="--c1:${e.c1};--c2:${e.c2}"`:''};
+    function ajustaBanco(){
+        const v=$('#cartaoBanco').value;
+        $('#cartaoOutroBox').hidden=v!=='Outro';$('#cartaoBancoOutro').required=v==='Outro';
+        $('#cartaoCorBox').hidden=v!=='Alimentação';
+        const e=estiloCartao({banco:v==='Outro'?'':v,cor:$('#cartaoCor').value}),pv=$('#cartaoPrev');
+        if(e){pv.style.setProperty('--c1',e.c1);pv.style.setProperty('--c2',e.c2)}else{pv.style.removeProperty('--c1');pv.style.removeProperty('--c2')}
+    }
+    document.addEventListener('change',e=>{if(e.target.id==='cartaoBanco')ajustaBanco()});
+    document.addEventListener('input',e=>{if(e.target.id==='cartaoCor')ajustaBanco()});
     $('#pgDiv').innerHTML=pagto('div');$('#pgGasto').innerHTML=pagto('gasto');
 
     $('#fUsuario').onsubmit=async e=>{
@@ -684,28 +785,45 @@
         db.usuarios.push(n);save();$('#dlgUsuario').close();renderLogin();if(db.currentUser){log(`Cadastrou o usuário ${n}`);if(currentTab==='apagarUsuario')renderApagar()}toast('Usuário cadastrado.');
     };
     $('#fEntrada').onsubmit=e=>{
-        e.preventDefault();const o={id:Date.now(),desc:$('#entDesc').value.trim(),forma:$('#entForma').value,valor:parseFloat($('#entValor').value),data:$('#entData').value};
+        e.preventDefault();const ed=entEditId!==null?L('entradas').find(x=>String(x.id)===entEditId):null;const o={id:ed?ed.id:Date.now(),desc:$('#entDesc').value.trim(),forma:$('#entForma').value,valor:parseFloat($('#entValor').value),data:$('#entData').value};
         if(!o.desc||!(o.valor>0)){toast('Informe a descrição e um valor maior que zero.');return}
+        if(ed){const antes=ed.valor;Object.assign(ed,o);save();$('#dlgEntrada').close();refresh();log(`Editou entrada: ${o.desc} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Entrada atualizada.');return}
         L('entradas').push(o);save();$('#dlgEntrada').close();refresh();log(`Adicionou entrada: ${o.desc} (${BRL(o.valor)})`);toast('Entrada salva.');
     };
     $('#fDivida').onsubmit=e=>{
         e.preventDefault();const forma=formaTexto('div');if(forma===null)return;
         const parcelado=$('#divParcelado').value,vezes=parcelado==='Sim'?Math.max(2,parseInt($('#divQtd').value)||2):1;
-        const o={id:Date.now(),titulo:$('#divTitulo').value.trim(),tipo:divTipo,forma,valor:parseFloat($('#divValor').value),data:$('#divData').value,parcelado,vezes,pago:false};
+        const ed=divEditId!==null?L('dividas').find(x=>String(x.id)===divEditId):null;
+        const o={id:ed?ed.id:Date.now(),titulo:$('#divTitulo').value.trim(),tipo:divTipo,forma,valor:parseFloat($('#divValor').value),data:$('#divData').value,parcelado,vezes,pago:ed?!!ed.pago:false};
         if(!o.titulo||!(o.valor>0)){toast('Informe o título e um valor maior que zero.');return}
         o.vencimento=calcVenc(o.data,parcelado,vezes);
+        if(ed){
+            const antes=ed.valor;Object.assign(ed,o);save();$('#dlgDivida').close();refresh();
+            log(`Editou dívida fixa: ${o.titulo} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Dívida atualizada.');return;
+        }
         L('dividas').push(o);save();$('#dlgDivida').close();refresh();log(`Adicionou dívida fixa: ${o.titulo} (${BRL(o.valor)})`);toast('Dívida salva.');
     };
     $('#fGasto').onsubmit=e=>{
         e.preventDefault();const forma=formaTexto('gasto');if(forma===null)return;
         const parcelado=$('#gastoParcelado').value,vezes=parcelado==='Sim'?Math.max(2,parseInt($('#gastoQtd').value)||2):1;
-        const o={id:Date.now(),desc:$('#gastoDesc').value.trim(),categoria:$('#gastoCat').value,forma,parcelado,vezes,valor:parseFloat($('#gastoValor').value),data:$('#gastoData').value};
+        const ed=gastoEditId!==null?L('gastos').find(x=>String(x.id)===gastoEditId):null;const o={id:ed?ed.id:Date.now(),desc:$('#gastoDesc').value.trim(),categoria:$('#gastoCat').value,forma,parcelado,vezes,valor:parseFloat($('#gastoValor').value),data:$('#gastoData').value};
         if(!o.desc||!(o.valor>0)){toast('Informe a descrição e um valor maior que zero.');return}
+        if(ed){const antes=ed.valor;Object.assign(ed,o);save();$('#dlgGasto').close();refresh();log(`Editou gasto: ${o.desc} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Gasto atualizado.');return}
         L('gastos').push(o);save();$('#dlgGasto').close();refresh();log(`Registrou gasto: ${o.desc} (${BRL(o.valor)})`);toast('Gasto registrado.');
     };
     $('#fCartao').onsubmit=e=>{
-        e.preventDefault();const o={id:Date.now(),nome:$('#cartaoNome').value.trim(),banco:$('#cartaoBanco').value.trim(),tipo:$('#cartaoTipo').value,final:$('#cartaoFinal').value.trim(),limite:parseFloat($('#cartaoLimite').value)};
-        if(!o.nome||!o.banco||!/^\d{4}$/.test(o.final)||!(o.limite>=0)){toast('Confira os dados do cartão (final com 4 números).');return}
+        e.preventDefault();
+        const sel=$('#cartaoBanco').value,banco=sel==='Outro'?$('#cartaoBancoOutro').value.trim():sel;
+        const ed=cartEditId!==null?L('cartoes').find(x=>String(x.id)===cartEditId):null;
+        const o={id:ed?ed.id:Date.now(),nome:$('#cartaoNome').value.trim(),banco,tipo:$('#cartaoTipo').value,final:$('#cartaoFinal').value.trim(),limite:parseFloat($('#cartaoLimite').value)};
+        if(sel==='Alimentação')o.cor=$('#cartaoCor').value;
+        if(!o.nome||!o.banco||!/^\d{4}$/.test(o.final)||!(o.limite>=0)){toast('Confira os dados do cartão (banco e final com 4 números).');return}
+        if(ed){
+            const antigo=ed.nome;Object.assign(ed,o);if(!o.cor)delete ed.cor;
+            // dívidas e gastos guardam o nome do cartão no texto da forma de pagamento: mantém tudo coerente
+            if(antigo!==o.nome)['dividas','gastos'].forEach(k=>L(k).forEach(i=>{i.forma=String(i.forma||'').replace(/^(Cartão (?:Crédito|Débito) - )(.*)$/,(m,a,b)=>b===antigo?a+o.nome:m)}));
+            save();$('#dlgCartao').close();refresh();log(`Editou cartão: ${o.nome} (${o.banco})`);toast('Cartão atualizado.');return;
+        }
         L('cartoes').push(o);save();$('#dlgCartao').close();refresh();log(`Adicionou cartão: ${o.nome} (${o.banco})`);toast('Cartão salvo.');
     };
 
@@ -779,6 +897,28 @@
         }).catch(()=>{}));
     }
 
+    /* ===== Mostrar / ocultar senha (todos os campos de senha) ===== */
+    function ativarOlhoSenha(){
+        $$('input[type="password"]').forEach(inp=>{
+            if(inp.parentElement.classList.contains('pw'))return;
+            const w=document.createElement('span');w.className='pw';
+            inp.parentNode.insertBefore(w,inp);w.appendChild(inp);
+            const b=document.createElement('button');b.type='button';b.className='pw-btn';b.textContent='Mostrar';
+            b.setAttribute('aria-label','Mostrar senha');
+            b.onclick=()=>{
+                const ver=inp.type==='password';inp.type=ver?'text':'password';
+                b.textContent=ver?'Ocultar':'Mostrar';b.setAttribute('aria-label',ver?'Ocultar senha':'Mostrar senha');inp.focus();
+            };
+            w.appendChild(b);
+        });
+    }
+    ativarOlhoSenha();
+    // ao fechar qualquer janela, as senhas voltam a ficar escondidas
+    document.addEventListener('close',e=>{
+        if(e.target.tagName!=='DIALOG')return;
+        e.target.querySelectorAll('.pw').forEach(w=>{const i=w.querySelector('input'),b=w.querySelector('.pw-btn');i.type='password';b.textContent='Mostrar';b.setAttribute('aria-label','Mostrar senha')});
+    },true);
+
     /* ===== Eventos ===== */
     document.addEventListener('click',async e=>{
         const t=e.target;
@@ -788,6 +928,7 @@
         const cl=t.closest('[data-close]');if(cl){cl.closest('dialog').close();return}
         const tp=t.closest('[data-tp]');if(tp){setTipo(tp.dataset.tp);return}
         const ex=t.closest('[data-exp]');if(ex){exportar(ex.dataset.exp,ex.dataset.geral?'geral':currentTab);$$('.menu').forEach(m=>m.hidden=true);return}
+        const ed=t.closest('[data-edit]');if(ed){editar(ed.dataset.edit,ed.dataset.id);return}
         const pg=t.closest('[data-pago]');
         if(pg){const d=L('dividas').find(x=>String(x.id)===pg.dataset.pago);if(d){d.pago=!d.pago;save();refresh();log(`Alterou status da dívida "${d.titulo}" para ${d.pago?'Pago':'Pendente'}`)}return}
         const dl=t.closest('[data-del]');
