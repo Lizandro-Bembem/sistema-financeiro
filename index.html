@@ -22,6 +22,7 @@
         body{font-family:Inter,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--m50);color:var(--m900);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
         [hidden]{display:none!important}
         button{font:inherit;cursor:pointer}
+        button:disabled{opacity:.5;cursor:not-allowed}
         .ic{width:20px;height:20px;flex:none}
         .sm{padding:4px 9px!important;font-size:.74rem!important}
         .mt{margin-top:10px}
@@ -156,6 +157,8 @@
         .grid2{display:grid;gap:12px}
         .dact{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:4px}
         .prev{font-size:.78rem;background:var(--m50);padding:8px;border-radius:8px;color:var(--m700);font-weight:500}
+        .limite-info{font-size:.76rem;background:var(--m50);border:1px solid var(--m100);padding:8px 10px;border-radius:8px;color:var(--m700);font-weight:500}
+        .limite-info.estouro{background:#ffe4e6;border:1px solid #fecdd3;border-left:3px solid var(--r);color:#9f1239;font-weight:600}
         #inputSalario{padding:8px 10px;border:1px solid var(--m200);border-radius:8px;width:170px;font:inherit}
         .inst{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
         .inst p{font-size:.86rem;line-height:1.6}
@@ -215,7 +218,7 @@
             <div class="menu" hidden><button type="button" id="btnEmail">E-mail de recuperação</button><button type="button" id="btnSair">Sair do usuário</button></div>
         </div>
         <nav id="navSide"></nav>
-        <div class="foot tx">v3.3 • PWA</div>
+        <div class="foot tx">v3.4 • PWA</div>
     </aside>
 
     <main class="main">
@@ -239,7 +242,7 @@
             <div class="card">
                 <span class="lbl">Salário</span>
                 <div class="row"><strong id="salarioDisplay" class="big">R$ 0,00</strong><button class="btn lt sm" id="btnEditSal">Editar</button></div>
-                <div class="row mt salbox" id="salBox" hidden><input type="text" id="inputSalario" class="campo-moeda" placeholder="R$ 0,00"><button class="btn prim sm" id="btnSalSave">Salvar</button></div>
+                <div class="row mt salbox" id="salBox" hidden><input type="text" inputmode="numeric" id="inputSalario" class="campo-moeda" placeholder="R$ 0,00"><button class="btn prim sm" id="btnSalSave">Salvar</button></div>
             </div>
             <div><h2 style="font-family:'Playfair Display',serif;margin-bottom:10px">Seu resumo orçamentário</h2><div class="kpis" id="kpis"></div></div>
         </section>
@@ -327,7 +330,7 @@
 <dialog id="dlgEntrada"><form id="fEntrada"><h3 id="entTituloDlg">Nova entrada de dinheiro</h3>
     <label>Descrição<input id="entDesc" class="cap-nome" required></label>
     <label>Forma de recebimento<select id="entForma"><option>Pix</option><option>Dinheiro Físico</option><option>Transferência</option><option>Boleto Bancário</option></select></label>
-    <label>Valor (R$)<input type="text" id="entValor" class="campo-moeda" required></label>
+    <label>Valor (R$)<input type="text" inputmode="numeric" id="entValor" class="campo-moeda" required></label>
     <label>Data<input type="date" id="entData" required></label>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="entSalvarBtn">Salvar</button></div></form></dialog>
 
@@ -335,7 +338,8 @@
     <label>Título da dívida<input id="divTitulo" class="cap-nome" required></label>
     <label>Tipo<select id="divTipoSelect"><option>Produto</option><option>Serviço</option><option>Financiamento</option><option>Empréstimo</option><option>Consórcio</option></select></label>
     <div id="pgDiv" class="grid2"></div>
-    <label><span id="divValorLbl">Valor (R$)</span><input type="text" id="divValor" class="campo-moeda" required></label>
+    <label><span id="divValorLbl">Valor (R$)</span><input type="text" inputmode="numeric" id="divValor" class="campo-moeda" required></label>
+    <div class="limite-info" id="divLimite" hidden></div>
     <label>Data em que começou<input type="date" id="divData" required></label>
     <div class="prev" id="divPrev" hidden></div>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="divSalvarBtn">Salvar</button></div></form></dialog>
@@ -343,7 +347,7 @@
 <dialog id="dlgContasFixas"><form id="fContasFixas"><h3 id="contaTituloDlg">Adicionar Conta Fixa</h3>
     <label>Tipo de Conta<select id="contaTipo"><option>IPVA</option><option>Conta de Luz</option><option>Conta de Água</option><option>Internet</option><option>IPTU</option></select></label>
     <label>Forma de Pagamento<select id="contaForma"><option>Pix</option><option>Débito Automático</option><option>Boleto Bancário</option></select></label>
-    <label>Valor (R$)<input type="text" id="contaValor" class="campo-moeda" required></label>
+    <label>Valor (R$)<input type="text" inputmode="numeric" id="contaValor" class="campo-moeda" required></label>
     <label>Vencimento<input type="date" id="contaData" required></label>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="contaSalvarBtn">Salvar</button></div></form></dialog>
 
@@ -351,7 +355,8 @@
     <label>Descrição<input id="gastoDesc" class="cap-nome" required></label>
     <label>Categoria<select id="gastoCat"><option>Alimentação</option><option>Saúde</option><option>Lazer</option><option>Transporte</option><option>Outros</option></select></label>
     <div id="pgGasto" class="grid2"></div>
-    <label><span id="gastoValorLbl">Valor total à vista (R$)</span><input type="text" id="gastoValor" class="campo-moeda" required></label>
+    <label><span id="gastoValorLbl">Valor total à vista (R$)</span><input type="text" inputmode="numeric" id="gastoValor" class="campo-moeda" required></label>
+    <div class="limite-info" id="gastoLimite" hidden></div>
     <label>Data<input type="date" id="gastoData" required></label>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="gastoSalvarBtn">Salvar</button></div></form></dialog>
 
@@ -363,7 +368,7 @@
     <div id="cartaoPrev" class="cc-prev" title="Prévia da cor"></div>
     <label>Tipo<select id="cartaoTipo"><option>Crédito e Débito</option><option>Apenas Crédito</option><option>Apenas Débito</option></select></label>
     <label>Final (4 dígitos)<input id="cartaoFinal" required maxlength="4" inputmode="numeric" pattern="\d{4}" placeholder="1234"></label>
-    <label>Limite (R$)<input type="text" id="cartaoLimite" class="campo-moeda" required></label>
+    <label>Limite (R$)<input type="text" inputmode="numeric" id="cartaoLimite" class="campo-moeda" required></label>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="cartSalvarBtn">Salvar</button></div></form></dialog>
 
 <dialog id="dlgConfirm"><div class="dbody"><h3 id="cfTitulo"></h3><p id="cfMsg" style="font-size:.86rem;color:var(--m700)"></p>
@@ -387,8 +392,11 @@
     const BRL=v=>(Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
     const pad=n=>String(n).padStart(2,'0');
     const hoje=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
-    const fmtData=i=>i?String(i).split('-').reverse().join('/'):'-';
+    const ISO=/^\d{4}-\d{2}-\d{2}$/;
+    const fmtData=i=>ISO.test(String(i||''))?String(i).split('-').reverse().join('/'):'-';
     const r2=n=>Math.round(n*100)/100;
+    const num=v=>{const n=Number(v);return Number.isFinite(n)&&n>0?n:0};
+    const str=(v,max=120)=>String(v??'').slice(0,max);
     const soma=a=>r2(a.reduce((t,i)=>t+(Number(i.valor)||0),0));
     const totalDiv=i=>(Number(i.valor)||0)*(i.vezes||1);
     const somaDiv=a=>r2(a.reduce((t,i)=>t+totalDiv(i),0));
@@ -461,14 +469,54 @@
 
     /* ===== Dados ===== */
     const CHAVES=['salarios','entradas','dividas','contasFixas','gastos','cartoes','senhas','emails'];
+    const LISTAS=['entradas','dividas','contasFixas','gastos','cartoes'];
+    const TIPOS_CARTAO=['Crédito e Débito','Apenas Crédito','Apenas Débito'];
     const PROIBIDOS=['__proto__','constructor','prototype','tostring','valueof','hasownproperty'];
     const proibido=n=>PROIBIDOS.includes(String(n).toLowerCase());
+    const HEX=/^#[0-9a-f]{6}$/i;
+
+    /* Saneia cada registro (tipos, datas, números, ids). Protege contra dados corrompidos
+       ou contra um arquivo de backup malicioso (ex.: injeção de HTML por campos numéricos). */
+    function limparItens(k,arr){
+        if(!Array.isArray(arr))return [];
+        const usados=new Set(),dt=v=>ISO.test(String(v||''))?String(v):'';
+        return arr.filter(i=>i&&typeof i==='object'&&!Array.isArray(i)).slice(0,5000).map((i,n)=>{
+            let id=Number(i.id);if(!Number.isFinite(id))id=Date.now()+n;while(usados.has(id))id++;usados.add(id);
+            const parc=i.parcelado==='Sim'&&Number(i.vezes)>1;
+            const vezes=parc?Math.min(360,Math.max(2,Math.floor(Number(i.vezes)))):1;
+            const parcelado=parc?'Sim':'Não',valor=r2(num(i.valor));
+            switch(k){
+                case 'entradas':return{id,desc:str(i.desc),forma:str(i.forma,60),valor,data:dt(i.data)};
+                case 'dividas':{
+                    const pagas={};
+                    if(i.pagas&&typeof i.pagas==='object')for(let p=1;p<=vezes;p++)if(i.pagas[p]===true)pagas[p]=true;
+                    return{id,titulo:str(i.titulo),tipo:str(i.tipo,40),forma:str(i.forma,120),valor,data:dt(i.data),parcelado,vezes,pago:!!i.pago,pagas,vencimento:dt(i.vencimento)||dt(i.data)};
+                }
+                case 'contasFixas':return{id,tipo:str(i.tipo,40),forma:str(i.forma,60),valor,data:dt(i.data),pago:!!i.pago};
+                case 'gastos':return{id,desc:str(i.desc),categoria:str(i.categoria,40),forma:str(i.forma,120),parcelado,vezes,valor,data:dt(i.data)};
+                case 'cartoes':{
+                    const c={id,nome:str(i.nome,60),banco:str(i.banco,40),tipo:TIPOS_CARTAO.includes(i.tipo)?i.tipo:'Crédito e Débito',final:str(i.final,4),limite:r2(num(i.limite))};
+                    if(HEX.test(String(i.cor||'')))c.cor=i.cor;
+                    return c;
+                }
+            }
+            return null;
+        }).filter(Boolean);
+    }
     function normalizar(d){
         if(!d||typeof d!=='object'||Array.isArray(d))d={};
         d.usuarios=Array.isArray(d.usuarios)?d.usuarios.filter(u=>typeof u==='string'&&u&&!proibido(u)):[];
-        d.auditoria=Array.isArray(d.auditoria)?d.auditoria.filter(i=>i&&typeof i==='object'):[];
+        d.auditoria=Array.isArray(d.auditoria)?d.auditoria.filter(i=>i&&typeof i==='object').slice(0,300).map(i=>({data:str(i.data,30),hora:str(i.hora,30),usuario:str(i.usuario,40),acao:str(i.acao,300)})):[];
         d.currentUser=null;
         CHAVES.forEach(k=>{const o=d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k])?d[k]:{};d[k]=Object.assign(Object.create(null),o)});
+        LISTAS.forEach(k=>Object.keys(d[k]).forEach(u=>{d[k][u]=limparItens(k,d[k][u])}));
+        Object.keys(d.salarios).forEach(u=>{d.salarios[u]=r2(num(d.salarios[u]))});
+        Object.keys(d.emails).forEach(u=>{d.emails[u]=str(d.emails[u],120)});
+        Object.keys(d.senhas).forEach(u=>{
+            const s=d.senhas[u];
+            if(!s||typeof s.salt!=='string'||typeof s.hash!=='string')delete d.senhas[u];
+            else d.senhas[u]={salt:s.salt.slice(0,64),hash:s.hash.slice(0,160)};
+        });
         return d;
     }
     function load(){
@@ -542,17 +590,40 @@
         const l=$('#userList');
         l.innerHTML=db.usuarios.length?db.usuarios.map(u=>`<button class="user-btn" data-user="${esc(u)}"><span><i></i>${esc(u)}</span>›</button>`).join(''):'<p style="opacity:.85;font-size:.85rem">Nenhum usuário cadastrado. Crie um abaixo.</p>';
     }
-    async function hashSenha(s,salt){
+
+    /* Senhas: PBKDF2-SHA256 (150 mil iterações) com sal único por usuário.
+       Hashes antigos (SHA-256 simples) continuam funcionando e são atualizados
+       automaticamente no próximo login bem-sucedido. */
+    const PBKDF2_ITER=150000,ENC=new TextEncoder();
+    const temCripto=()=>!!(window.crypto&&crypto.subtle);
+    const hexa=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+    async function hashCom(s,salt,pref){
+        if(pref==='p_'){
+            if(!temCripto())return '';
+            const k=await crypto.subtle.importKey('raw',ENC.encode(s),'PBKDF2',false,['deriveBits']);
+            return 'p_'+hexa(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:ENC.encode(salt),iterations:PBKDF2_ITER},k,256));
+        }
         const t=salt+':'+s;
-        if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return 's_'+[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+        if(pref==='s_'&&temCripto())return 's_'+hexa(await crypto.subtle.digest('SHA-256',ENC.encode(t)));
         let h=0;for(let i=0;i<t.length;i++){h=((h<<5)-h)+t.charCodeAt(i);h|=0}return 'h_'+Math.abs(h).toString(36);
     }
+    const hashSenha=(s,salt)=>hashCom(s,salt,temCripto()?'p_':'h_');
     function novosalt(){
         const a=window.crypto&&crypto.getRandomValues?crypto.getRandomValues(new Uint8Array(16)):Array.from({length:16},()=>Math.random()*256|0);
         return [...a].map(x=>x.toString(16).padStart(2,'0')).join('');
     }
     async function criarSenha(u,s){const salt=novosalt();db.senhas[u]={salt,hash:await hashSenha(s,salt)};save()}
-    async function checarSenha(u,s){const r=db.senhas[u];return !!r&&(await hashSenha(s,r.salt))===r.hash}
+    async function checarSenha(u,s){
+        const r=db.senhas[u];if(!r||typeof r.hash!=='string')return false;
+        const ok=(await hashCom(s,r.salt,r.hash.slice(0,2)))===r.hash;
+        if(ok&&!r.hash.startsWith('p_')&&temCripto())await criarSenha(u,s);
+        return ok;
+    }
+    /* Bloqueio temporário após 5 senhas erradas seguidas */
+    const falhas=Object.create(null);
+    const esperaLogin=u=>{const f=falhas[u];return f&&f.ate>Date.now()?Math.ceil((f.ate-Date.now())/1000):0};
+    function registrarFalha(u){const f=falhas[u]||(falhas[u]={n:0,ate:0});f.n++;if(f.n>=5){f.n=0;f.ate=Date.now()+30000}}
+
     let userAlvo=null,senhaModo='entrar';
     function pedirSenha(u,modo='entrar'){
         userAlvo=u;senhaModo=modo;const nova=!db.senhas[u];
@@ -573,24 +644,31 @@
             if(s!==$('#senhaIn2').value)return erro('As senhas não conferem.');
             const em=$('#senhaEmail').value.trim();if(!emailOk(em))return erro('Informe um e-mail válido para recuperação.');
             await criarSenha(u,s);db.emails[u]=em;save();
-        }else if(!(await checarSenha(u,s))){$('#senhaIn').value='';$('#senhaIn').focus();return erro('Senha incorreta. Acesso não permitido.')}
+        }else{
+            const w=esperaLogin(u);if(w>0)return erro(`Muitas tentativas erradas. Aguarde ${w}s para tentar de novo.`);
+            if(!(await checarSenha(u,s))){registrarFalha(u);$('#senhaIn').value='';$('#senhaIn').focus();return erro('Senha incorreta. Acesso não permitido.')}
+            delete falhas[u];
+        }
         const modo=senhaModo;$('#dlgSenha').close();userAlvo=null;
         if(modo==='apagar')await removerUsuario(u);else loginUser(u);
     };
     const EMAILJS={service:'service_h17pigq',template:'template_nt93dtt',key:'97xHs0bElecCe3m1H'};
     const emailOk=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
     const mascara=e=>{const [a,b]=e.split('@');return a.slice(0,2)+'***@'+b};
-    let reset=null;
+    let reset=null,ultimoEnvio=0;
     async function enviarCodigo(u){
         const email=db.emails[u];
         if(!email)return 'Este usuário não tem e-mail cadastrado, então não é possível recuperar a senha.';
         if(!EMAILJS.service||!EMAILJS.template||!EMAILJS.key)return 'O envio de e-mail ainda não foi configurado no sistema.';
         if(!navigator.onLine)return 'Sem internet. Conecte-se para receber o código.';
+        const espera=Math.ceil((ultimoEnvio+60000-Date.now())/1000);
+        if(espera>0)return `Aguarde ${espera}s para pedir um novo código.`;
+        ultimoEnvio=Date.now();
         const a=new Uint32Array(1);crypto.getRandomValues(a);const code=String(100000+a[0]%900000),salt=novosalt();
         try{
             const r=await fetch('https://api.emailjs.com/api/v1.0/email/send',{method:'POST',headers:{'Content-Type':'application/json'},
                 body:JSON.stringify({service_id:EMAILJS.service,template_id:EMAILJS.template,user_id:EMAILJS.key,template_params:{email:email,to_email:email,to_name:u,code,passcode:code,time:new Date(Date.now()+15*60000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),app_name:'Sistema Financeiro - Família Bembem'}})});
-            if(!r.ok)return `Não foi possível enviar o e-mail (erro ${r.status}): ${await r.text()}`;
+            if(!r.ok)return `Não foi possível enviar o e-mail (erro ${r.status}).`;
         }catch(e){return 'Falha de conexão ao enviar o e-mail.'}
         reset={u,salt,hash:await hashSenha(code,salt),exp:Date.now()+15*60000,tent:0};
         return null;
@@ -613,7 +691,7 @@
         if(n!==$('#resetNova2').value)return erro('As senhas não conferem.');
         reset.tent++;
         if((await hashSenha($('#resetCodigo').value.trim(),reset.salt))!==reset.hash)return erro('Código incorreto.');
-        const u=reset.u;reset=null;await criarSenha(u,n);$('#dlgReset').close();
+        const u=reset.u;reset=null;await criarSenha(u,n);delete falhas[u];$('#dlgReset').close();
         const a=new Date();db.auditoria.unshift({data:a.toLocaleDateString('pt-BR'),hora:a.toLocaleTimeString('pt-BR'),usuario:u,acao:'Redefiniu a senha por e-mail'});save();renderAuditoria();
         toast('Senha alterada! Entre com a nova senha.',5000);
     };
@@ -625,7 +703,7 @@
     };
     function loginUser(u){
         db.currentUser=u;
-        ['entradas','dividas','contasFixas','gastos','cartoes'].forEach(k=>{if(!Array.isArray(db[k][u]))db[k][u]=[]});
+        LISTAS.forEach(k=>{if(!Array.isArray(db[k][u]))db[k][u]=[]});
         if(typeof db.salarios[u]!=='number')db.salarios[u]=0;
         document.body.classList.add('auth');
         $('#userNameDisplay').textContent=u;$('#userInitial').textContent=u.charAt(0).toUpperCase();
@@ -688,14 +766,14 @@
         $('#kpis').innerHTML=[['Total de entradas',e,'g'],['Total de dívidas',d,'r'],['Total de contas fixas',cf,'a'],['Total de gastos',g,'a'],['Saldo estimado',saldo,saldo<0?'r':'g']]
             .map(([t,v,c])=>`<div class="kpi ${c}"><span class="lbl">${t}</span><b>${BRL(v)}</b></div>`).join('');
     }
-    const delBtn=(k,id)=>`<button class="ib" data-del="${k}" data-id="${id}" title="Remover" aria-label="Remover">${ic('lixo','ic" style="width:17px;height:17px')}</button>`;
+    const delBtn=(k,id)=>`<button class="ib" data-del="${k}" data-id="${esc(id)}" title="Remover" aria-label="Remover">${ic('lixo','ic" style="width:17px;height:17px')}</button>`;
     function vazioRow(cols,msg){return `<tr><td colspan="${cols}" class="vazio">${msg}</td></tr>`}
     function renderEntradas(){
         const a=L('entradas');
         $('#bEntradas').innerHTML=a.length?a.map(i=>`<tr><td><b>${esc(i.desc)}</b></td><td>${esc(i.forma)}</td><td style="color:var(--g);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(i.data)}</td><td class="r">${edBtn('entradas',i.id)}${delBtn('entradas',i.id)}</td></tr>`).join(''):vazioRow(5,'Nenhuma entrada cadastrada.');
     }
     const NOMES_ED={dividas:'dívida',contasFixas:'conta fixa',entradas:'entrada',gastos:'gasto',cartoes:'cartão'};
-    const edBtn=(k,id)=>`<button class="ib ed" data-edit="${k}" data-id="${id}" title="Editar ${NOMES_ED[k]}" aria-label="Editar ${NOMES_ED[k]}">${ic('editar','ic" style="width:17px;height:17px')}</button>`;
+    const edBtn=(k,id)=>`<button class="ib ed" data-edit="${k}" data-id="${esc(id)}" title="Editar ${NOMES_ED[k]}" aria-label="Editar ${NOMES_ED[k]}">${ic('editar','ic" style="width:17px;height:17px')}</button>`;
     const atrasada=d=>{const v=d.vencimento||d.data;return !d.pago&&v&&new Date(v+'T23:59:59')<new Date()};
     const ehParcelada=d=>d.parcelado==='Sim'&&d.vezes>1&&!!d.data;
 
@@ -722,25 +800,25 @@
                 faltam = i.pago ? 0 : 1;
             }
 
-            const st=i.pago?`<span class="tag ok">Pago</span><button class="lk" data-pago="${i.id}">Desfazer</button>`
+            const st=i.pago?`<span class="tag ok">Pago</span><button class="lk" data-pago="${esc(i.id)}">Desfazer</button>`
                 :`<div style="display:grid;gap:2px;align-items:start">
                     <small style="font-weight:600;color:var(--m700)">Próx: ${v?fmtData(v):'N/A'}</small>
                     <small style="font-size:0.7rem;color:var(--m600)">Faltam ${faltam} parcela${faltam>1?'s':''}</small>
                     ${at?'<span class="tag at" style="margin-bottom:2px">Dívida pendente</span>':''}
-                    <button class="btn prim" data-pago="${i.id}" style="background:var(--g);border-color:var(--g);padding:3px 8px;font-size:0.7rem;border-radius:6px;width:fit-content;margin-top:2px">Pagar tudo</button>
+                    <button class="btn prim" data-pago="${esc(i.id)}" style="background:var(--g);border-color:var(--g);padding:3px 8px;font-size:0.7rem;border-radius:6px;width:fit-content;margin-top:2px">Pagar tudo</button>
                   </div>`;
 
             let htmlRow = `<tr class="${at?'atr':''}"><td><b>${esc(i.titulo)}</b></td><td style="color:var(--r);font-weight:700">${BRL(totalDiv(i))}</td><td>${v ? fmtData(v) : '-'}</td><td>${st}</td><td class="r">${edBtn('dividas',i.id)}${delBtn('dividas',i.id)}</td></tr>`;
 
             if(par){
                 let pagas=0;for(let p=1;p<=i.vezes;p++)if(i.pagas?.[p])pagas++;
-                htmlRow += `<tr style="background:#fcfbf9"><td colspan="5" style="padding:8px 16px"><details data-det="${i.id}"${abertasParc.has(String(i.id))?' open':''}><summary style="cursor:pointer;font-size:.75rem;font-weight:700;color:var(--m700)">Parcelas: ${pagas} de ${i.vezes} pagas</summary><div style="display:grid;gap:4px;margin-top:6px">`;
+                htmlRow += `<tr style="background:#fcfbf9"><td colspan="5" style="padding:8px 16px"><details data-det="${esc(i.id)}"${abertasParc.has(String(i.id))?' open':''}><summary style="cursor:pointer;font-size:.75rem;font-weight:700;color:var(--m700)">Parcelas: ${pagas} de ${i.vezes} pagas</summary><div style="display:grid;gap:4px;margin-top:6px">`;
                 for(let p = 1; p <= i.vezes; p++) {
                     let parcIso = addMes(i.data, p-1);
                     let parcAtrasada = !i.pagas?.[p] && new Date(parcIso + 'T23:59:59') < new Date();
                     let parcPago = !!i.pagas?.[p];
 
-                    htmlRow += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:${parcAtrasada?'#fef3c7':'#fff'};padding:6px 12px;border-radius:8px;border:1px solid var(--m200)"><span>Parcela ${p}/${i.vezes} - <b>${BRL(i.valor)}</b> (Venc: ${fmtData(parcIso)})</span><button class="btn sm ${parcPago?'prim':'lt'}"${parcPago?' style="background:var(--g);border-color:var(--g)"':''} data-pago-parc="${i.id}_${p}">${parcPago?'Pago':'Marcar pago'}</button></div>`;
+                    htmlRow += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:${parcAtrasada?'#fef3c7':'#fff'};padding:6px 12px;border-radius:8px;border:1px solid var(--m200)"><span>Parcela ${p}/${i.vezes} - <b>${BRL(i.valor)}</b> (Venc: ${fmtData(parcIso)})</span><button class="btn sm ${parcPago?'prim':'lt'}"${parcPago?' style="background:var(--g);border-color:var(--g)"':''} data-pago-parc="${esc(i.id)}_${p}">${parcPago?'Pago':'Marcar pago'}</button></div>`;
                 }
                 htmlRow += `</div></details></td></tr>`;
             }
@@ -752,8 +830,8 @@
         const a=L('contasFixas');
         $('#bContasFixas').innerHTML=a.length?a.map(i=>{
             const v=i.data,at=atrasada(i);
-            const st=i.pago?`<span class="tag ok">Pago</span><button class="lk" data-pago-conta="${i.id}">Desfazer</button>`
-                :`<div class="row" style="gap:8px">${at?'<span class="tag at">Conta pendente</span>':''}<button class="btn prim sm" data-pago-conta="${i.id}" style="background:var(--g);border-color:var(--g)">Marcar pago</button></div>`;
+            const st=i.pago?`<span class="tag ok">Pago</span><button class="lk" data-pago-conta="${esc(i.id)}">Desfazer</button>`
+                :`<div class="row" style="gap:8px">${at?'<span class="tag at">Conta pendente</span>':''}<button class="btn prim sm" data-pago-conta="${esc(i.id)}" style="background:var(--g);border-color:var(--g)">Marcar pago</button></div>`;
             return `<tr class="${at?'atr':''}"><td><b>${esc(i.tipo)}</b></td><td style="color:var(--a);font-weight:700">${BRL(i.valor)}</td><td>${esc(i.forma)}</td><td>${fmtData(v)}</td><td>${st}</td><td class="r">${edBtn('contasFixas',i.id)}${delBtn('contasFixas',i.id)}</td></tr>`}).join(''):vazioRow(6,'Nenhuma conta fixa cadastrada.');
     }
 
@@ -799,6 +877,33 @@
 <label>Parcelado?<select id="${p}Parcelado"><option>Não</option><option>Sim</option></select></label>
 <label id="${p}QtdBox" hidden>Número de parcelas<input type="number" id="${p}Qtd" min="2" max="360" value="2"></label>`;
 
+    /* ----- Limite do cartão -----
+       Compra no CRÉDITO não pode ultrapassar o limite do cartão selecionado.
+       (Débito não tem limite.) Em compra parcelada de dívida, vale o total das parcelas. */
+    function totalCompra(p){
+        const v=getNumMoeda('#'+p+'Valor');
+        if(p==='div'&&$('#divParcelado').value==='Sim')return r2(v*Math.max(2,parseInt($('#divQtd').value)||2));
+        return r2(v);
+    }
+    function cartaoCredito(p){
+        if($('#'+p+'Forma').value!=='Cartão'||$('#'+p+'TipoCartao').value!=='Crédito')return null;
+        const c=L('cartoes').find(x=>String(x.id)===$('#'+p+'CartaoSel').value);
+        return c&&c.tipo!=='Apenas Débito'?c:null;
+    }
+    function checarLimite(p){
+        const c=cartaoCredito(p);if(!c)return null;
+        const tot=totalCompra(p),lim=Number(c.limite)||0;
+        return tot>lim?`Compra de ${BRL(tot)} acima do limite de ${BRL(lim)} do cartão "${c.nome}". Reduza o valor ou escolha outro cartão.`:null;
+    }
+    function atualizaLimite(p){
+        const box=$('#'+p+'Limite'),btn=$('#'+p+'SalvarBtn'),c=cartaoCredito(p);
+        if(!c){box.hidden=true;box.classList.remove('estouro');btn.disabled=false;return}
+        const lim=Number(c.limite)||0,tot=totalCompra(p),estoura=tot>lim;
+        box.hidden=false;box.classList.toggle('estouro',estoura);
+        box.textContent=estoura?`⚠ Esta compra (${BRL(tot)}) ultrapassa o limite de ${BRL(lim)} do cartão "${c.nome}". Reduza o valor ou escolha outro cartão.`:`Limite do cartão "${c.nome}": ${BRL(lim)}`;
+        btn.disabled=estoura;
+    }
+
     function ajusta(p){
         const f=$('#'+p+'Forma').value,cart=f==='Cartão';$('#'+p+'CartaoBox').hidden=!cart;
         const s=$('#'+p+'Parcelado');
@@ -830,10 +935,11 @@
 
         if(p==='div'){$('#divValorLbl').textContent=sim?'Valor de cada parcela (R$)':'Valor (R$)';previewDiv()}
         else $('#gastoValorLbl').textContent=sim?'Valor total (R$)':'Valor total à vista (R$)';
+        atualizaLimite(p);
     }
 
     function cartaoOpts(){
-        const a=L('cartoes'),h=a.length?a.map(c=>`<option value="${c.id}">${esc(c.nome)} - ${esc(c.banco)} (•••• ${esc(c.final)})</option>`).join(''):'<option value="">Cadastre um cartão primeiro</option>';
+        const a=L('cartoes'),h=a.length?a.map(c=>`<option value="${esc(c.id)}">${esc(c.nome)} - ${esc(c.banco)} (•••• ${esc(c.final)})</option>`).join(''):'<option value="">Cadastre um cartão primeiro</option>';
         $('#divCartaoSel').innerHTML=h;$('#gastoCartaoSel').innerHTML=h;
         ajusta('div');ajusta('gasto');
     }
@@ -947,7 +1053,6 @@
         if(/alimenta/.test(t))return 'alimentacao';
         return null;
     }
-    const HEX=/^#[0-9a-f]{6}$/i;
     const lumin=h=>{const n=parseInt(h.slice(1),16);return .299*(n>>16)+.587*(n>>8&255)+.114*(n&255)};
     function escurecer(h,f=.35){const n=parseInt(h.slice(1),16),m=v=>Math.round(v*(1-f)).toString(16).padStart(2,'0');return '#'+m(n>>16)+m(n>>8&255)+m(n&255)}
     function estiloCartao(c){
@@ -978,8 +1083,11 @@
         if(m)ajusta(m[1]);
     });
     document.addEventListener('input',e=>{
-        if(e.target.id==='cartaoCor')ajustaBanco();
-        if(e.target.id==='divQtd'||e.target.id==='divData')previewDiv();
+        const id=e.target.id||'';
+        if(id==='cartaoCor')ajustaBanco();
+        if(id==='divQtd'||id==='divData')previewDiv();
+        const mm=id.match(/^(div|gasto)(Valor|Qtd)$/);
+        if(mm)atualizaLimite(mm[1]);
     });
     $('#pgDiv').innerHTML=pagto('div');$('#pgGasto').innerHTML=pagto('gasto');
 
@@ -1002,6 +1110,7 @@
     };
     $('#fDivida').onsubmit=e=>{
         e.preventDefault();const forma=formaTexto('div');if(forma===null)return;
+        const eLim=checarLimite('div');if(eLim){toast(eLim,5500);return}
         const parcelado=$('#divParcelado').value,vezes=parcelado==='Sim'?Math.max(2,parseInt($('#divQtd').value)||2):1;
         const ed=divEditId!==null?L('dividas').find(x=>String(x.id)===divEditId):null;
         const tipoD=$('#divTipoSelect').value;
@@ -1026,6 +1135,7 @@
     };
     $('#fGasto').onsubmit=e=>{
         e.preventDefault();const forma=formaTexto('gasto');if(forma===null)return;
+        const eLim=checarLimite('gasto');if(eLim){toast(eLim,5500);return}
         const parcelado=$('#gastoParcelado').value,vezes=parcelado==='Sim'?Math.max(2,parseInt($('#gastoQtd').value)||2):1;
         const ed=gastoEditId!==null?L('gastos').find(x=>String(x.id)===gastoEditId):null;const o={id:ed?ed.id:Date.now(),desc:$('#gastoDesc').value.trim(),categoria:$('#gastoCat').value,forma,parcelado,vezes,valor:getNumMoeda('#gastoValor'),data:$('#gastoData').value};
         if(!o.desc||!(o.valor>0)){toast('Informe a descrição e um valor maior que zero.');return}
@@ -1039,6 +1149,7 @@
         const o={id:ed?ed.id:Date.now(),nome:$('#cartaoNome').value.trim(),banco,tipo:$('#cartaoTipo').value,final:$('#cartaoFinal').value.trim(),limite:$('#cartaoTipo').value==='Apenas Débito'?0:getNumMoeda('#cartaoLimite')};
         if(sel==='Outro')o.cor=$('#cartaoCor').value;
         if(!o.nome||!o.banco||!/^\d{4}$/.test(o.final)||!(o.limite>=0)){toast('Confira os dados do cartão (banco e final com 4 números).');return}
+        if(o.tipo!=='Apenas Débito'&&!(o.limite>0)){toast('Informe um limite maior que zero para cartões de crédito.');return}
         if(ed){
             const antigo=ed.nome;Object.assign(ed,o);if(!o.cor)delete ed.cor;
             if(antigo!==o.nome)['dividas','gastos'].forEach(k=>L(k).forEach(i=>{i.forma=String(i.forma||'').replace(/^(Cartão (?:Crédito|Débito) - )(.*)$/,(m,a,b)=>b===antigo?a+o.nome:m)}));
@@ -1131,6 +1242,11 @@
         });
     }
     ativarOlhoSenha();
+    /* Ao fechar qualquer janela, as senhas voltam a ficar escondidas */
+    document.addEventListener('close',e=>{
+        if(e.target.tagName!=='DIALOG')return;
+        e.target.querySelectorAll('.pw').forEach(w=>{const i=w.querySelector('input'),b=w.querySelector('.pw-btn');if(i)i.type='password';if(b)b.textContent='Mostrar'});
+    },true);
 
     document.addEventListener('click',async e=>{
         const t=e.target;
@@ -1183,6 +1299,7 @@
         const dl=t.closest('[data-del]');
         if(dl){
             const k=dl.dataset.del,nomes={entradas:'entrada',dividas:'dívida',contasFixas:'conta fixa',gastos:'gasto',cartoes:'cartão'};
+            if(!nomes[k])return;
             if(!await confirmar('Remover '+nomes[k],`Deseja realmente remover ${k==='cartoes'?'este':'esta'} ${nomes[k]}?`))return;
             db[k][db.currentUser]=L(k).filter(i=>String(i.id)!==dl.dataset.id);save();refresh();log(`Removeu ${nomes[k]}`);toast('Removido.');return;
         }
