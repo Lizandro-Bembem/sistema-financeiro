@@ -345,7 +345,7 @@
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="divSalvarBtn">Salvar</button></div></form></dialog>
 
 <dialog id="dlgContasFixas"><form id="fContasFixas"><h3 id="contaTituloDlg">Adicionar Conta Fixa</h3>
-    <label>Tipo de Conta<select id="contaTipo"><option>IPVA</option><option>Conta de Luz</option><option>Conta de Água</option><option>Internet</option><option>IPTU</option></select></label>
+    <label>Tipo de Conta<input type="text" id="contaTipo" class="cap-nome" list="listaTiposConta" maxlength="40" required autocomplete="off" placeholder="Escolha ou digite o tipo da conta"><datalist id="listaTiposConta"><option value="IPVA"></option><option value="Conta de Luz"></option><option value="Conta de Água"></option><option value="Internet"></option><option value="IPTU"></option></datalist></label>
     <label>Forma de Pagamento<select id="contaForma"><option>Pix</option><option>Débito Automático</option><option>Boleto Bancário</option></select></label>
     <label>Valor (R$)<input type="text" inputmode="numeric" id="contaValor" class="campo-moeda" required></label>
     <label>Vencimento<input type="date" id="contaData" required></label>
@@ -1001,7 +1001,7 @@
         const x=L('contasFixas').find(i=>String(i.id)===String(id));if(!x)return;
         abrir('dlgContasFixas');
         contaEditId=String(x.id);$('#contaTituloDlg').textContent='Editar Conta Fixa';$('#contaSalvarBtn').textContent='Salvar alterações';
-        $('#contaTipo').value=x.tipo||'IPVA';$('#contaForma').value=x.forma||'Pix';
+        $('#contaTipo').value=x.tipo||'';$('#contaForma').value=x.forma||'Pix';
         setNumMoeda('#contaValor', x.valor);
         $('#contaData').value=x.data||hoje();
     }
@@ -1071,10 +1071,30 @@
         const e=estiloCartao({banco:outro?'':v,cor:outro?$('#cartaoCor').value:''}),pv=$('#cartaoPrev');
         if(e){pv.style.setProperty('--c1',e.c1);pv.style.setProperty('--c2',e.c2)}else{pv.style.removeProperty('--c1');pv.style.removeProperty('--c2')}
     }
+    /* Tipo de conta: ao focar, mostra todas as sugestões; se sair sem digitar, devolve o valor anterior */
+    (function(){
+        const t=$('#contaTipo');if(!t)return;let guarda='';
+        t.addEventListener('focus',()=>{guarda=t.value;if(t.value&&[...$('#listaTiposConta').options].some(o=>o.value===t.value))t.value=''});
+        t.addEventListener('blur',()=>{if(!t.value.trim())t.value=guarda});
+    })();
     function ajustaTipoCartao(){
         const deb=$('#cartaoTipo').value==='Apenas Débito',l=$('#cartaoLimite');
-        l.disabled=deb;l.required=!deb;if(deb)l.value='';
+        l.disabled=deb;l.required=!deb;l.readOnly=false;
+        if(deb)l.value='';
+        l.placeholder=deb?'Sem limite':'R$ 0,00';
     }
+    /* Máscara de moeda direta no campo de limite (garante digitação em qualquer navegador) */
+    (function(){
+        const l=$('#cartaoLimite');if(!l)return;
+        l.setAttribute('inputmode','numeric');l.setAttribute('autocomplete','off');
+        l.addEventListener('input',()=>{
+            const d=l.value.replace(/\D/g,'').slice(0,13);
+            if(!d){l.value='';return}
+            const v=(parseInt(d,10)/100).toFixed(2).split('.');
+            v[0]=v[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+            l.value='R$ '+v.join(',');
+        });
+    })();
     document.addEventListener('change',e=>{
         const id=e.target.id||'';
         if(id==='cartaoBanco')ajustaBanco();
@@ -1128,7 +1148,9 @@
     $('#fContasFixas').onsubmit=e=>{
         e.preventDefault();
         const ed=contaEditId!==null?L('contasFixas').find(x=>String(x.id)===contaEditId):null;
-        const o={id:ed?ed.id:Date.now(),tipo:$('#contaTipo').value,forma:$('#contaForma').value,valor:getNumMoeda('#contaValor'),data:$('#contaData').value,pago:ed?!!ed.pago:false};
+        const tipoConta=$('#contaTipo').value.trim().replace(/\s+/g,' ');
+        if(!tipoConta){toast('Informe o tipo da conta.');return}
+        const o={id:ed?ed.id:Date.now(),tipo:tipoConta,forma:$('#contaForma').value,valor:getNumMoeda('#contaValor'),data:$('#contaData').value,pago:ed?!!ed.pago:false};
         if(!(o.valor>0)){toast('Informe um valor válido.');return}
         if(ed){Object.assign(ed,o);save();$('#dlgContasFixas').close();refresh();log(`Editou conta fixa: ${o.tipo} (${BRL(o.valor)})`);toast('Conta fixa atualizada.');return}
         L('contasFixas').push(o);save();$('#dlgContasFixas').close();refresh();log(`Adicionou conta fixa: ${o.tipo} (${BRL(o.valor)})`);toast('Conta fixa salva.');
