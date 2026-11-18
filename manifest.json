@@ -3,16 +3,23 @@
   "short_name": "Financeiro",
   "description": "Organização das finanças da família",
   "id": "/sistema-financeiro/",
-  "start_url": "/sistema-financeiro/index.html",
-  "scope": "/sistema-financeiro/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#3e2723",
   "theme_color": "#5d4037",
   "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["finance", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "screenshot-mobile.png", "sizes": "540x1170", "type": "image/png", "form_factor": "narrow", "label": "Resumo da renda mensal no celular" },
+    { "src": "screenshot-desktop.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Controle de dívidas fixas no computador" }
   ]
 }
