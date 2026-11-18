@@ -131,6 +131,9 @@
         .cc small{color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.06em;font-size:.68rem}
         .cc .ib{color:rgba(255,255,255,.85)}.cc .ib:hover{background:rgba(255,255,255,.15)}
         .cc .num{font-family:ui-monospace,monospace;font-size:1.1rem;letter-spacing:.16em}
+        .lim{height:5px;border-radius:99px;background:rgba(255,255,255,.25);margin-top:8px;overflow:hidden}
+        .lim i{display:block;height:100%;border-radius:99px;background:currentColor}
+        .cc.claro .lim{background:rgba(0,0,0,.15)}
         .cc.claro{color:#2b1b17}.cc.claro small{color:rgba(43,27,23,.72)}.cc.claro .ib{color:rgba(43,27,23,.75)}.cc.claro .ib:hover{background:rgba(0,0,0,.08)}
         .cc-prev{height:34px;border-radius:10px;background:linear-gradient(135deg,var(--c1,#6d4c41),var(--c2,#3e2723));border:1px solid var(--m200)}
         .urow{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--m50);border:1px solid var(--m100);border-radius:12px}
@@ -696,7 +699,7 @@
     function renderCartoes(){
         const a=L('cartoes');
         $('#gCartoes').innerHTML=a.length?a.map(c=>`<div class="cc${clsCartao(c)}"${varsCartao(c)}><div class="row" style="justify-content:space-between;align-items:flex-start"><div><small>${esc(c.banco)}</small><h4 style="font-size:1rem">${esc(c.nome)}</h4></div><div class="row" style="gap:2px;flex-wrap:nowrap">${edBtn('cartoes',c.id)}${delBtn('cartoes',c.id)}</div></div>
-   <div><small>${esc(c.tipo)}</small><div class="row" style="justify-content:space-between;margin-top:6px"><span class="num">•••• ${esc(c.final)}</span><span style="font-size:.76rem">${c.tipo==='Apenas Débito'?'Sem limite':'Limite: '+BRL(c.limite)}</span></div></div></div>`).join(''):'<p class="vazio" style="grid-column:1/-1">Nenhum cartão cadastrado.</p>';
+   <div><small>${esc(c.tipo)}</small><div class="row" style="justify-content:space-between;margin-top:6px"><span class="num">•••• ${esc(c.final)}</span><span style="font-size:.76rem;text-align:right;line-height:1.3">${c.tipo==='Apenas Débito'?'Sem limite':`Disponível <b>${BRL(limiteDisp(c))}</b><br>de ${BRL(c.limite)}`}</span></div>${c.tipo==='Apenas Débito'?'':`<div class="lim" title="Limite usado"><i style="width:${Math.min(100,Math.max(0,(c.limite>0?limiteUsado(c)/c.limite:1)*100)).toFixed(1)}%"></i></div>`}</div></div>`).join(''):'<p class="vazio" style="grid-column:1/-1">Nenhum cartão cadastrado.</p>';
     }
     function renderAuditoria(){
         $('#bAudit').innerHTML=db.auditoria.length?db.auditoria.map(i=>`<tr><td>${esc(i.data)}</td><td>${esc(i.hora)}</td><td><b>${esc(i.usuario)}</b></td><td>${esc(i.acao)}</td></tr>`).join(''):vazioRow(4,'Nenhum registro de auditoria.');
@@ -738,8 +741,35 @@
         if(p==='div'){$('#divValorLbl').textContent=sim?'Valor de cada parcela (R$)':'Valor (R$)';previewDiv()}
         else $('#gastoValorLbl').textContent=sim?'Valor total (R$)':'Valor total à vista (R$)';
     }
+    /* ===== Limite do cartão (só compras no CRÉDITO usam limite) =====
+       - Dívida fixa: ocupa o valor total (parcela × nº de parcelas) até ser marcada como paga
+       - Conta fixa: ocupa o valor até ser marcada como paga
+       - Gasto: ocupa o valor total até terminarem as parcelas (à vista: até a fatura do mês seguinte) */
+    function cartaoDoItem(i){
+        const m=/^Cartão Crédito - (.*)$/.exec(i.forma||'');if(!m)return null;const cs=L('cartoes');
+        return (i.cartaoId!=null&&cs.find(c=>String(c.id)===String(i.cartaoId)))||cs.find(c=>c.nome===m[1])||null;
+    }
+    function fimGasto(i){const d=new Date((i.data||hoje())+'T12:00:00');d.setMonth(d.getMonth()+(i.parcelado==='Sim'?(Number(i.vezes)||1):1));return d}
+    function valorNoLimite(k,i){
+        if(!/^Cartão Crédito - /.test(i.forma||''))return 0;
+        if(k==='gastos')return new Date()<fimGasto(i)?Number(i.valor)||0:0;
+        if(i.pago)return 0;
+        if(k==='dividas')return (Number(i.valor)||0)*(i.parcelado==='Sim'?(Number(i.vezes)||1):1);
+        return Number(i.valor)||0;
+    }
+    function limiteUsado(c,ignorar){
+        let s=0;['dividas','contas','gastos'].forEach(k=>L(k).forEach(i=>{if(i===ignorar)return;const x=cartaoDoItem(i);if(x&&String(x.id)===String(c.id))s+=valorNoLimite(k,i)}));
+        return Math.round(s*100)/100;
+    }
+    const limiteDisp=(c,ignorar)=>Math.round(((Number(c.limite)||0)-limiteUsado(c,ignorar))*100)/100;
+    function checarLimite(k,o,ignorar){ /* true = pode salvar */
+        const c=cartaoDoItem(o);if(!c)return true;const v=valorNoLimite(k,o);if(!v)return true;
+        const d=limiteDisp(c,ignorar);
+        if(v>d+0.001){toast(`Valor acima do limite do cartão ${c.nome}. Limite disponível: ${BRL(Math.max(0,d))}${k==='dividas'&&o.parcelado==='Sim'?` (esta dívida soma ${BRL(v)} em ${o.vezes} parcelas)`:''}.`,6000);return false}
+        return true;
+    }
     function cartaoOpts(){
-        const a=L('cartoes'),h=a.length?a.map(c=>`<option value="${c.id}">${esc(c.nome)} - ${esc(c.banco)} (•••• ${esc(c.final)})</option>`).join(''):'<option value="">Cadastre um cartão primeiro</option>';
+        const a=L('cartoes'),h=a.length?a.map(c=>`<option value="${c.id}">${esc(c.nome)} - ${esc(c.banco)} (•••• ${esc(c.final)})${c.tipo==='Apenas Débito'?'':' · disponível '+BRL(Math.max(0,limiteDisp(c)))}</option>`).join(''):'<option value="">Cadastre um cartão primeiro</option>';
         $('#divCartaoSel').innerHTML=h;$('#gastoCartaoSel').innerHTML=h;
     }
     function formaTexto(p){
@@ -830,7 +860,7 @@
     }
     function contaCartoes(sel){
         const a=L('cartoes'),s=$('#contaCartao');
-        s.innerHTML=(a.length?'<option value="" disabled>Selecione o cartão...</option>':'<option value="" disabled>Nenhum cartão cadastrado</option>')+a.map(c=>`<option value="${c.id}">${esc(c.nome)} - ${esc(c.banco)} (•••• ${esc(c.final)})</option>`).join('');
+        s.innerHTML=(a.length?'<option value="" disabled>Selecione o cartão...</option>':'<option value="" disabled>Nenhum cartão cadastrado</option>')+a.map(c=>`<option value="${c.id}">${esc(c.nome)} - ${esc(c.banco)} (•••• ${esc(c.final)})${c.tipo==='Apenas Débito'?'':' · disponível '+BRL(Math.max(0,limiteDisp(c)))}</option>`).join('');
         s.value=sel==null?'':String(sel);if(s.selectedIndex<0)s.selectedIndex=0;
     }
     function editarConta(id){
@@ -921,6 +951,7 @@
         const ed=divEditId!==null?L('dividas').find(x=>String(x.id)===divEditId):null;
         const o={id:ed?ed.id:Date.now(),titulo:$('#divTitulo').value.trim(),tipo:divTipo,forma,valor:lerValor('#divValor'),data:$('#divData').value,parcelado,vezes,pago:ed?!!ed.pago:false};
         if(!o.titulo||!(o.valor>0)){toast('Informe o título e um valor maior que zero.');return}
+        if(!checarLimite('dividas',o,ed))return;
         o.vencimento=calcVenc(o.data,parcelado,vezes);
         if(ed){
             const antes=ed.valor;Object.assign(ed,o);save();$('#dlgDivida').close();refresh();
@@ -933,6 +964,7 @@
         const parcelado=$('#gastoParcelado').value,vezes=parcelado==='Sim'?Math.max(2,parseInt($('#gastoQtd').value)||2):1;
         const ed=gastoEditId!==null?L('gastos').find(x=>String(x.id)===gastoEditId):null;const o={id:ed?ed.id:Date.now(),desc:$('#gastoDesc').value.trim(),categoria:$('#gastoCat').value,forma,parcelado,vezes,valor:lerValor('#gastoValor'),data:$('#gastoData').value};
         if(!o.desc||!(o.valor>0)){toast('Informe a descrição e um valor maior que zero.');return}
+        if(!checarLimite('gastos',o,ed))return;
         if(ed){const antes=ed.valor;Object.assign(ed,o);save();$('#dlgGasto').close();refresh();log(`Editou gasto: ${o.desc} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Gasto atualizado.');return}
         L('gastos').push(o);save();$('#dlgGasto').close();refresh();log(`Registrou gasto: ${o.desc} (${BRL(o.valor)})`);toast('Gasto registrado.');
     };
@@ -945,6 +977,7 @@
         if(cartaoId!==null)o.cartaoId=cartaoId;
         if(o.tipo==='Outra'&&!o.desc){toast('Escreva o nome da conta.');return}
         if(!(o.valor>0)||!o.vencimento){toast('Informe um valor maior que zero e o vencimento.');return}
+        if(!checarLimite('contas',o,ed))return;
         const n=tituloConta(o);
         if(ed){const antes=ed.valor;Object.assign(ed,o);if(cartaoId===null)delete ed.cartaoId;save();$('#dlgConta').close();refresh();log(`Editou conta fixa: ${n} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Conta atualizada.');return}
         L('contas').push(o);save();$('#dlgConta').close();refresh();log(`Adicionou conta fixa: ${n} (${BRL(o.valor)})`);toast('Conta salva.');
@@ -975,11 +1008,11 @@
             dividas:{n:'Dívidas Fixas',c:['Título','Tipo','Forma','Valor','Vencimento','Pago'],r:L('dividas').map(i=>[i.titulo,i.tipo,i.forma,i.valor,fmtData(i.vencimento||i.data),i.pago?'Sim':'Não'])},
             contas:{n:'Contas Fixas',c:['Conta','Descrição','Forma','Valor','Vencimento','Pago'],r:L('contas').map(i=>[i.tipo,i.desc||'',i.forma,i.valor,fmtData(i.vencimento),i.pago?'Sim':'Não'])},
             gastos:{n:'Gastos',c:['Descrição','Categoria','Forma','Valor','Data'],r:L('gastos').map(i=>[i.desc,i.categoria,i.forma,i.valor,fmtData(i.data)])},
-            cartoes:{n:'Cartões',c:['Nome','Banco','Tipo','Final','Limite'],r:L('cartoes').map(i=>[i.nome,i.banco,i.tipo,i.final,i.limite])},
+            cartoes:{n:'Cartões',c:['Nome','Banco','Tipo','Final','Limite','Disponível'],r:L('cartoes').map(i=>[i.nome,i.banco,i.tipo,i.final,i.limite,i.tipo==='Apenas Débito'?0:limiteDisp(i)])},
             auditoria:{n:'Auditoria',c:['Data','Hora','Usuário','Ação'],r:db.auditoria.map(i=>[i.data,i.hora,i.usuario,i.acao])}
         };
     }
-    const MONEY=['Valor','Limite'];
+    const MONEY=['Valor','Limite','Disponível'];
     const nomeArq=()=>db.currentUser.replace(/[^\wÀ-ú-]+/g,'_');
     function exportar(tipo,alvo){
         const ds=datasets(),geral=alvo==='geral',chaves=geral?['renda','entradas','dividas','contas','gastos','cartoes']:[alvo];
@@ -1070,9 +1103,9 @@
         const ex=t.closest('[data-exp]');if(ex){exportar(ex.dataset.exp,ex.dataset.geral?'geral':currentTab);$$('.menu').forEach(m=>m.hidden=true);return}
         const ed=t.closest('[data-edit]');if(ed){editar(ed.dataset.edit,ed.dataset.id);return}
         const pc=t.closest('[data-pagoconta]');
-        if(pc){const c=L('contas').find(x=>String(x.id)===pc.dataset.pagoconta);if(c){c.pago=!c.pago;save();refresh();log(`Alterou status da conta "${tituloConta(c)}" para ${c.pago?'Pago':'Pendente'}`)}return}
+        if(pc){const c=L('contas').find(x=>String(x.id)===pc.dataset.pagoconta);if(c){if(c.pago&&!checarLimite('contas',{...c,pago:false},c))return;c.pago=!c.pago;save();refresh();log(`Alterou status da conta "${tituloConta(c)}" para ${c.pago?'Pago':'Pendente'}`)}return}
         const pg=t.closest('[data-pago]');
-        if(pg){const d=L('dividas').find(x=>String(x.id)===pg.dataset.pago);if(d){d.pago=!d.pago;save();refresh();log(`Alterou status da dívida "${d.titulo}" para ${d.pago?'Pago':'Pendente'}`)}return}
+        if(pg){const d=L('dividas').find(x=>String(x.id)===pg.dataset.pago);if(d){if(d.pago&&!checarLimite('dividas',{...d,pago:false},d))return;d.pago=!d.pago;save();refresh();log(`Alterou status da dívida "${d.titulo}" para ${d.pago?'Pago':'Pendente'}`)}return}
         const dl=t.closest('[data-del]');
         if(dl){
             const k=dl.dataset.del,nomes={entradas:'entrada',dividas:'dívida',contas:'conta',gastos:'gasto',cartoes:'cartão'};
