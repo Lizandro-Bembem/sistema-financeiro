@@ -239,7 +239,7 @@
             <div class="card">
                 <span class="lbl">Salário</span>
                 <div class="row"><strong id="salarioDisplay" class="big">R$ 0,00</strong><button class="btn lt sm" id="btnEditSal">Editar</button></div>
-                <div class="row mt salbox" id="salBox" hidden><input type="number" step="0.01" min="0" id="inputSalario" placeholder="Novo valor"><button class="btn prim sm" id="btnSalSave">Salvar</button></div>
+                <div class="row mt salbox" id="salBox" hidden><input class="money" inputmode="decimal" autocomplete="off" placeholder="0,00" id="inputSalario" aria-label="Novo salário"><button class="btn prim sm" id="btnSalSave">Salvar</button></div>
             </div>
             <div><h2 style="font-family:'Playfair Display',serif;margin-bottom:10px">Seu resumo orçamentário</h2><div class="kpis" id="kpis"></div></div>
         </section>
@@ -296,7 +296,7 @@
 <dialog id="dlgEntrada"><form id="fEntrada"><h3 id="entTituloDlg">Nova entrada de dinheiro</h3>
     <label>Descrição<input id="entDesc" required></label>
     <label>Forma de recebimento<select id="entForma"><option>Pix</option><option>Dinheiro Físico</option><option>Transferência</option><option>Boleto Bancário</option><option>Código de Barras</option></select></label>
-    <label>Valor (R$)<input type="number" step="0.01" min="0.01" id="entValor" required></label>
+    <label>Valor (R$)<input class="money" inputmode="decimal" autocomplete="off" placeholder="0,00" id="entValor" required></label>
     <label>Data<input type="date" id="entData" required></label>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="entSalvarBtn">Salvar</button></div></form></dialog>
 
@@ -304,16 +304,17 @@
     <label>Título da dívida<input id="divTitulo" required></label>
     <label>Tipo<div class="seg"><button type="button" id="tpProduto" data-tp="Produto" class="on">Produto</button><button type="button" id="tpServico" data-tp="Serviço">Serviço</button></div></label>
     <div id="pgDiv" class="grid2"></div>
-    <label><span id="divValorLbl">Valor (R$)</span><input type="number" step="0.01" min="0.01" id="divValor" required></label>
+    <label><span id="divValorLbl">Valor (R$)</span><input class="money" inputmode="decimal" autocomplete="off" placeholder="0,00" id="divValor" required></label>
     <label>Data em que começou<input type="date" id="divData" required></label>
     <div class="prev" id="divPrev" hidden></div>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="divSalvarBtn">Salvar</button></div></form></dialog>
 
 <dialog id="dlgConta"><form id="fConta"><h3 id="contaTituloDlg">Adicionar conta fixa</h3>
-    <label>Tipo de conta<select id="contaTipo"><option>IPVA</option><option>IPTU</option><option>Consórcio</option><option>Conta de Água</option><option>Conta de Luz</option><option>Outra</option></select></label>
-    <label><span id="contaDescLbl">Descrição (opcional)</span><input id="contaDesc" maxlength="80" placeholder="Ex: IPVA do carro, parcela 3/5"></label>
-    <label>Forma de pagamento<select id="contaForma"><option>Boleto Bancário</option><option>Pix</option><option>Débito Automático</option><option>Código de Barras</option><option>Dinheiro Físico</option><option>Transferência</option><option>Cartão</option></select></label>
-    <label>Valor (R$)<input type="number" step="0.01" min="0.01" id="contaValor" required></label>
+    <label>Tipo de conta<select id="contaTipo"><option>Consórcio</option><option>Conta de Água</option><option>Conta de Luz</option><option>Internet</option><option>IPTU</option><option>IPVA</option><option>Outra</option></select></label>
+    <label>Nome da conta (somente para "Outra")<input id="contaDesc" maxlength="80"></label>
+    <label>Forma de pagamento<select id="contaForma"><option>Cartão</option><option>Código de Barras</option><option>Débito Automático</option><option>Dinheiro Físico</option><option>Pix</option><option>Transferência</option></select></label>
+    <label id="contaCartaoBox" hidden>Cartão<select id="contaCartao"></select></label>
+    <label>Valor (R$)<input class="money" inputmode="decimal" autocomplete="off" placeholder="0,00" id="contaValor" required></label>
     <label>Vencimento<input type="date" id="contaVenc" required></label>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="contaSalvarBtn">Salvar</button></div></form></dialog>
 
@@ -321,7 +322,7 @@
     <label>Descrição<input id="gastoDesc" required></label>
     <label>Categoria<select id="gastoCat"><option>Alimentação</option><option>Saúde</option><option>Lazer</option><option>Transporte</option><option>Outros</option></select></label>
     <div id="pgGasto" class="grid2"></div>
-    <label><span id="gastoValorLbl">Valor total à vista (R$)</span><input type="number" step="0.01" min="0.01" id="gastoValor" required></label>
+    <label><span id="gastoValorLbl">Valor total à vista (R$)</span><input class="money" inputmode="decimal" autocomplete="off" placeholder="0,00" id="gastoValor" required></label>
     <label>Data<input type="date" id="gastoData" required></label>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="gastoSalvarBtn">Salvar</button></div></form></dialog>
 
@@ -333,7 +334,7 @@
     <div id="cartaoPrev" class="cc-prev" title="Prévia da cor"></div>
     <label>Tipo<select id="cartaoTipo"><option>Crédito e Débito</option><option>Apenas Crédito</option><option>Apenas Débito</option></select></label>
     <label>Final (4 dígitos)<input id="cartaoFinal" required maxlength="4" inputmode="numeric" pattern="\d{4}" placeholder="1234"></label>
-    <label>Limite (R$)<input type="number" step="0.01" min="0" id="cartaoLimite" required></label>
+    <label>Limite (R$)<input class="money" inputmode="decimal" autocomplete="off" placeholder="0,00" id="cartaoLimite" required></label>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="cartSalvarBtn">Salvar</button></div></form></dialog>
 
 <dialog id="dlgConfirm"><div class="dbody"><h3 id="cfTitulo"></h3><p id="cfMsg" style="font-size:.86rem;color:var(--m700)"></p>
@@ -359,6 +360,25 @@
     const hoje=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
     const fmtData=i=>i?String(i).split('-').reverse().join('/'):'-';
     const soma=a=>a.reduce((t,i)=>t+(Number(i.valor)||0),0);
+    /* ===== Campos de valor (R$): formata enquanto digita =====
+       1500 -> 1.500 | vírgula ou ponto digitado vira separador de centavos | ao sair do campo completa: 1.500,00 */
+    const fmtValor=v=>v==null||v===''||isNaN(v)?'':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const lerValor=s=>{let v=$(s).value.trim();if(!/\d/.test(v))return NaN;if(!v.includes(','))v=v.replace(/\.(\d{1,2})$/,',$1');return Number(v.replace(/[^\d,]/g,'').replace(',','.'))};
+    function mascaraValor(el,ev){
+        let v=el.value,pos=el.selectionStart??v.length;const tipo=(ev&&ev.inputType)||'';
+        if(tipo==='insertFromPaste'||(ev&&ev.data&&ev.data.length>1)){if(!v.includes(','))v=v.replace(/\.(\d{1,2})\s*$/,',$1');pos=v.length}
+        else if(tipo.startsWith('insert')&&pos>0&&/[.,]/.test(v[pos-1])){const a=v.slice(0,pos-1).replace(/,/g,''),b=v.slice(pos).replace(/,/g,'');v=a+','+b;pos=a.length+1}
+        const antes=v.slice(0,pos).replace(/[^\d,]/g,'').length,i=v.indexOf(',');
+        let int=(i<0?v:v.slice(0,i)).replace(/\D/g,'').replace(/^0+(?=\d)/,'').slice(0,11);
+        const dec=i<0?null:v.slice(i+1).replace(/\D/g,'').slice(0,2);
+        let zero=0;if(!int&&dec!==null){int='0';zero=1}
+        const novo=int.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+(dec!==null?','+dec:'');
+        el.value=novo;
+        let n=0,p=0;while(p<novo.length&&n<antes+zero){if(/[\d,]/.test(novo[p]))n++;p++}
+        try{el.setSelectionRange(p,p)}catch(e){}
+    }
+    document.addEventListener('input',e=>{if(e.target.classList&&e.target.classList.contains('money'))mascaraValor(e.target,e)});
+    document.addEventListener('focusout',e=>{const el=e.target;if(el.classList&&el.classList.contains('money')&&/\d/.test(el.value))el.value=fmtValor(lerValor('#'+el.id))});
     const ICON={
         renda:'<path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
         entradas:'<path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>',
@@ -416,7 +436,7 @@
         renda:{t:'Renda Mensal',s:'Resumo do seu orçamento',ex:1,nav:'Renda'},
         entradas:{t:'Entradas de Dinheiro',s:'Tudo o que entrou',ex:1,nav:'Entradas',add:['+ Nova Entrada','dlgEntrada']},
         dividas:{t:'Dívidas Fixas',s:'Contas e parcelas a pagar',ex:1,nav:'Dívidas fixas',add:['+ Adicionar Dívida','dlgDivida']},
-        contas:{t:'Contas Fixas',s:'IPVA, IPTU, consórcio, água, luz e outras',ex:1,nav:'Contas fixas',add:['+ Adicionar Conta','dlgConta']},
+        contas:{t:'Contas Fixas',s:'',ex:1,nav:'Contas fixas',add:['+ Adicionar Conta','dlgConta']},
         gastos:{t:'Gastos',s:'Despesas do dia a dia',ex:1,nav:'Gastos',add:['+ Registrar Gasto','dlgGasto']},
         cartoes:{t:'Cartões',s:'Seus cartões cadastrados',ex:1,nav:'Cartões',add:['+ Adicionar Cartão','dlgCartao']},
         auditoria:{t:'Auditoria do Sistema',s:'Histórico das ações realizadas',ex:1,solo:1,nav:'Auditoria'},
@@ -443,7 +463,7 @@
         $$('.tab').forEach(e=>e.hidden=true);$('#tab-'+id).hidden=false;
         $$('[data-tab]').forEach(b=>b.classList.toggle('ativo',b.dataset.tab===id));
         const c=TABS[id];$('#tbTitulo').textContent=c.t;
-        $('#tbSub').textContent=c.s+' · '+new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+        $('#tbSub').textContent=(c.s?c.s+' · ':'')+new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
         const add=$('#btnAdd');add.hidden=!c.add;if(c.add)add.textContent=c.add[0];
         $('#ddXls').hidden=$('#ddPdf').hidden=!c.ex;
         $$('.menu [data-geral]').forEach(b=>b.hidden=!!c.solo);
@@ -708,7 +728,7 @@
         if(id==='dlgEntrada'){entEditId=null;$('#entTituloDlg').textContent='Nova entrada de dinheiro';$('#entSalvarBtn').textContent='Salvar';$('#entData').value=hoje()}
         if(id==='dlgDivida'){divEditId=null;$('#divTituloDlg').textContent='Adicionar dívida fixa';$('#divSalvarBtn').textContent='Salvar';$('#divData').value=hoje();setTipo('Produto');cartaoOpts();ajusta('div')}
         if(id==='dlgGasto'){gastoEditId=null;$('#gastoTituloDlg').textContent='Registrar gasto';$('#gastoSalvarBtn').textContent='Salvar';$('#gastoData').value=hoje();cartaoOpts();ajusta('gasto')}
-        if(id==='dlgConta'){contaEditId=null;$('#contaTituloDlg').textContent='Adicionar conta fixa';$('#contaSalvarBtn').textContent='Salvar';$('#contaVenc').value=hoje();ajustaConta()}
+        if(id==='dlgConta'){contaEditId=null;$('#contaTituloDlg').textContent='Adicionar conta fixa';$('#contaSalvarBtn').textContent='Salvar';$('#contaVenc').value=hoje();contaCartoes();ajustaConta()}
         if(id==='dlgCartao'){cartEditId=null;$('#cartTituloDlg').textContent='Adicionar cartão';$('#cartSalvarBtn').textContent='Salvar';ajustaBanco();ajustaTipoCartao()}
         d.showModal();
     }
@@ -728,7 +748,7 @@
         abrir('dlgDivida');
         divEditId=String(d.id);$('#divTituloDlg').textContent='Editar dívida fixa';$('#divSalvarBtn').textContent='Salvar alterações';
         $('#divTitulo').value=d.titulo||'';setTipo(d.tipo==='Serviço'?'Serviço':'Produto');
-        $('#divValor').value=d.valor;$('#divData').value=d.data||hoje();
+        $('#divValor').value=fmtValor(d.valor);$('#divData').value=d.data||hoje();
         preencherPagto('div',d);
     }
     function editarEntrada(id){
@@ -736,14 +756,14 @@
         abrir('dlgEntrada');
         entEditId=String(x.id);$('#entTituloDlg').textContent='Editar entrada';$('#entSalvarBtn').textContent='Salvar alterações';
         $('#entDesc').value=x.desc||'';$('#entForma').value=x.forma;if(!$('#entForma').value)$('#entForma').selectedIndex=0;
-        $('#entValor').value=x.valor;$('#entData').value=x.data||hoje();
+        $('#entValor').value=fmtValor(x.valor);$('#entData').value=x.data||hoje();
     }
     function editarGasto(id){
         const g=L('gastos').find(i=>String(i.id)===String(id));if(!g)return;
         abrir('dlgGasto');
         gastoEditId=String(g.id);$('#gastoTituloDlg').textContent='Editar gasto';$('#gastoSalvarBtn').textContent='Salvar alterações';
         $('#gastoDesc').value=g.desc||'';$('#gastoCat').value=g.categoria;if(!$('#gastoCat').value)$('#gastoCat').selectedIndex=0;
-        $('#gastoValor').value=g.valor;$('#gastoData').value=g.data||hoje();
+        $('#gastoValor').value=fmtValor(g.valor);$('#gastoData').value=g.data||hoje();
         preencherPagto('gasto',g);
     }
     function editarCartao(id){
@@ -753,22 +773,33 @@
         $('#cartaoNome').value=c.nome||'';
         const b=BANCOS.find(x=>x.k===chaveBanco(c.banco));
         if(b)$('#cartaoBanco').value=b.n;else{$('#cartaoBanco').value='Outro';$('#cartaoBancoOutro').value=c.banco||''}
-        $('#cartaoTipo').value=c.tipo;$('#cartaoFinal').value=c.final;$('#cartaoLimite').value=c.limite;
+        $('#cartaoTipo').value=c.tipo;$('#cartaoFinal').value=c.final;$('#cartaoLimite').value=fmtValor(c.limite);
         if(/^#[0-9a-f]{6}$/i.test(c.cor||''))$('#cartaoCor').value=c.cor;
         ajustaBanco();ajustaTipoCartao();
     }
+    /* Nome da conta só pode ser escrito com "Outra"; com "Cartão" é obrigatório escolher o cartão */
     function ajustaConta(){
         const o=$('#contaTipo').value==='Outra',d=$('#contaDesc');
-        $('#contaDescLbl').textContent=o?'Nome da conta':'Descrição (opcional)';d.required=o;
-        d.placeholder=o?'Ex: Internet, condomínio, seguro do carro':'Ex: IPVA do carro, parcela 3 de 5';
+        d.disabled=!o;d.required=o;if(!o)d.value='';
+        d.placeholder=o?'Ex: Condomínio, seguro do carro':'Selecione "Outra" para escrever';
+        const cart=$('#contaForma').value==='Cartão',s=$('#contaCartao');
+        $('#contaCartaoBox').hidden=!cart;s.disabled=!cart;s.required=cart;
+    }
+    function contaCartoes(sel){
+        const a=L('cartoes'),s=$('#contaCartao');
+        s.innerHTML=(a.length?'<option value="" disabled>Selecione o cartão...</option>':'<option value="" disabled>Nenhum cartão cadastrado</option>')+a.map(c=>`<option value="${c.id}">${esc(c.nome)} - ${esc(c.banco)} (•••• ${esc(c.final)})</option>`).join('');
+        s.value=sel==null?'':String(sel);if(s.selectedIndex<0)s.selectedIndex=0;
     }
     function editarConta(id){
         const c=L('contas').find(i=>String(i.id)===String(id));if(!c)return;
         abrir('dlgConta');
         contaEditId=String(c.id);$('#contaTituloDlg').textContent='Editar conta fixa';$('#contaSalvarBtn').textContent='Salvar alterações';
         $('#contaTipo').value=c.tipo;if(!$('#contaTipo').value)$('#contaTipo').value='Outra';
-        $('#contaDesc').value=c.desc||'';$('#contaForma').value=c.forma;if(!$('#contaForma').value)$('#contaForma').selectedIndex=0;
-        $('#contaValor').value=c.valor;$('#contaVenc').value=c.vencimento||hoje();ajustaConta();
+        const cartao=c.cartaoId!=null?c.cartaoId:(L('cartoes').find(x=>'Cartão - '+x.nome===c.forma)||{}).id;
+        $('#contaForma').value=cartao!=null||/^Cartão/.test(c.forma||'')?'Cartão':c.forma==='Boleto Bancário'?'Código de Barras':c.forma;if(!$('#contaForma').value)$('#contaForma').value='Pix';
+        contaCartoes(cartao);
+        $('#contaValor').value=fmtValor(c.valor);$('#contaVenc').value=c.vencimento||hoje();ajustaConta();
+        if($('#contaTipo').value==='Outra')$('#contaDesc').value=c.desc||'';
     }
     function editar(k,id){({dividas:editarDivida,contas:editarConta,entradas:editarEntrada,gastos:editarGasto,cartoes:editarCartao}[k]||(()=>{}))(id)}
 
@@ -819,7 +850,7 @@
     document.addEventListener('change',e=>{
         if(e.target.id==='cartaoBanco')ajustaBanco();
         if(e.target.id==='cartaoTipo')ajustaTipoCartao();
-        if(e.target.id==='contaTipo')ajustaConta();
+        if(e.target.id==='contaTipo'||e.target.id==='contaForma')ajustaConta();
     });
     document.addEventListener('input',e=>{if(e.target.id==='cartaoCor')ajustaBanco()});
     $('#pgDiv').innerHTML=pagto('div');$('#pgGasto').innerHTML=pagto('gasto');
@@ -835,7 +866,7 @@
         db.usuarios.push(n);save();$('#dlgUsuario').close();renderLogin();if(db.currentUser){log(`Cadastrou o usuário ${n}`);if(currentTab==='apagarUsuario')renderApagar()}toast('Usuário cadastrado.');
     };
     $('#fEntrada').onsubmit=e=>{
-        e.preventDefault();const ed=entEditId!==null?L('entradas').find(x=>String(x.id)===entEditId):null;const o={id:ed?ed.id:Date.now(),desc:$('#entDesc').value.trim(),forma:$('#entForma').value,valor:parseFloat($('#entValor').value),data:$('#entData').value};
+        e.preventDefault();const ed=entEditId!==null?L('entradas').find(x=>String(x.id)===entEditId):null;const o={id:ed?ed.id:Date.now(),desc:$('#entDesc').value.trim(),forma:$('#entForma').value,valor:lerValor('#entValor'),data:$('#entData').value};
         if(!o.desc||!(o.valor>0)){toast('Informe a descrição e um valor maior que zero.');return}
         if(ed){const antes=ed.valor;Object.assign(ed,o);save();$('#dlgEntrada').close();refresh();log(`Editou entrada: ${o.desc} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Entrada atualizada.');return}
         L('entradas').push(o);save();$('#dlgEntrada').close();refresh();log(`Adicionou entrada: ${o.desc} (${BRL(o.valor)})`);toast('Entrada salva.');
@@ -844,7 +875,7 @@
         e.preventDefault();const forma=formaTexto('div');if(forma===null)return;
         const parcelado=$('#divParcelado').value,vezes=parcelado==='Sim'?Math.max(2,parseInt($('#divQtd').value)||2):1;
         const ed=divEditId!==null?L('dividas').find(x=>String(x.id)===divEditId):null;
-        const o={id:ed?ed.id:Date.now(),titulo:$('#divTitulo').value.trim(),tipo:divTipo,forma,valor:parseFloat($('#divValor').value),data:$('#divData').value,parcelado,vezes,pago:ed?!!ed.pago:false};
+        const o={id:ed?ed.id:Date.now(),titulo:$('#divTitulo').value.trim(),tipo:divTipo,forma,valor:lerValor('#divValor'),data:$('#divData').value,parcelado,vezes,pago:ed?!!ed.pago:false};
         if(!o.titulo||!(o.valor>0)){toast('Informe o título e um valor maior que zero.');return}
         o.vencimento=calcVenc(o.data,parcelado,vezes);
         if(ed){
@@ -856,7 +887,7 @@
     $('#fGasto').onsubmit=e=>{
         e.preventDefault();const forma=formaTexto('gasto');if(forma===null)return;
         const parcelado=$('#gastoParcelado').value,vezes=parcelado==='Sim'?Math.max(2,parseInt($('#gastoQtd').value)||2):1;
-        const ed=gastoEditId!==null?L('gastos').find(x=>String(x.id)===gastoEditId):null;const o={id:ed?ed.id:Date.now(),desc:$('#gastoDesc').value.trim(),categoria:$('#gastoCat').value,forma,parcelado,vezes,valor:parseFloat($('#gastoValor').value),data:$('#gastoData').value};
+        const ed=gastoEditId!==null?L('gastos').find(x=>String(x.id)===gastoEditId):null;const o={id:ed?ed.id:Date.now(),desc:$('#gastoDesc').value.trim(),categoria:$('#gastoCat').value,forma,parcelado,vezes,valor:lerValor('#gastoValor'),data:$('#gastoData').value};
         if(!o.desc||!(o.valor>0)){toast('Informe a descrição e um valor maior que zero.');return}
         if(ed){const antes=ed.valor;Object.assign(ed,o);save();$('#dlgGasto').close();refresh();log(`Editou gasto: ${o.desc} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Gasto atualizado.');return}
         L('gastos').push(o);save();$('#dlgGasto').close();refresh();log(`Registrou gasto: ${o.desc} (${BRL(o.valor)})`);toast('Gasto registrado.');
@@ -864,23 +895,27 @@
     $('#fConta').onsubmit=e=>{
         e.preventDefault();
         const ed=contaEditId!==null?L('contas').find(x=>String(x.id)===contaEditId):null;
-        const o={id:ed?ed.id:Date.now(),tipo:$('#contaTipo').value,desc:$('#contaDesc').value.trim(),forma:$('#contaForma').value,valor:parseFloat($('#contaValor').value),vencimento:$('#contaVenc').value,pago:ed?!!ed.pago:false};
+        const tipo=$('#contaTipo').value;let forma=$('#contaForma').value,cartaoId=null;
+        if(forma==='Cartão'){const c=L('cartoes').find(x=>String(x.id)===$('#contaCartao').value);if(!c){toast('Selecione o cartão para adicionar a conta.');return}cartaoId=c.id;forma='Cartão - '+c.nome}
+        const o={id:ed?ed.id:Date.now(),tipo,desc:tipo==='Outra'?$('#contaDesc').value.trim():'',forma,valor:lerValor('#contaValor'),vencimento:$('#contaVenc').value,pago:ed?!!ed.pago:false};
+        if(cartaoId!==null)o.cartaoId=cartaoId;
         if(o.tipo==='Outra'&&!o.desc){toast('Escreva o nome da conta.');return}
         if(!(o.valor>0)||!o.vencimento){toast('Informe um valor maior que zero e o vencimento.');return}
         const n=tituloConta(o);
-        if(ed){const antes=ed.valor;Object.assign(ed,o);save();$('#dlgConta').close();refresh();log(`Editou conta fixa: ${n} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Conta atualizada.');return}
+        if(ed){const antes=ed.valor;Object.assign(ed,o);if(cartaoId===null)delete ed.cartaoId;save();$('#dlgConta').close();refresh();log(`Editou conta fixa: ${n} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Conta atualizada.');return}
         L('contas').push(o);save();$('#dlgConta').close();refresh();log(`Adicionou conta fixa: ${n} (${BRL(o.valor)})`);toast('Conta salva.');
     };
     $('#fCartao').onsubmit=e=>{
         e.preventDefault();
         const sel=$('#cartaoBanco').value,banco=sel==='Outro'?$('#cartaoBancoOutro').value.trim():sel;
         const ed=cartEditId!==null?L('cartoes').find(x=>String(x.id)===cartEditId):null;
-        const o={id:ed?ed.id:Date.now(),nome:$('#cartaoNome').value.trim(),banco,tipo:$('#cartaoTipo').value,final:$('#cartaoFinal').value.trim(),limite:$('#cartaoTipo').value==='Apenas Débito'?0:parseFloat($('#cartaoLimite').value)};
+        const o={id:ed?ed.id:Date.now(),nome:$('#cartaoNome').value.trim(),banco,tipo:$('#cartaoTipo').value,final:$('#cartaoFinal').value.trim(),limite:$('#cartaoTipo').value==='Apenas Débito'?0:lerValor('#cartaoLimite')};
         if(sel==='Alimentação')o.cor=$('#cartaoCor').value;
         if(!o.nome||!o.banco||!/^\d{4}$/.test(o.final)||!(o.limite>=0)){toast('Confira os dados do cartão (banco e final com 4 números).');return}
         if(ed){
             const antigo=ed.nome;Object.assign(ed,o);if(!o.cor)delete ed.cor;
             // dívidas e gastos guardam o nome do cartão no texto da forma de pagamento: mantém tudo coerente
+            if(antigo!==o.nome)L('contas').forEach(i=>{if(String(i.cartaoId)===String(ed.id))i.forma='Cartão - '+o.nome});
             if(antigo!==o.nome)['dividas','gastos'].forEach(k=>L(k).forEach(i=>{i.forma=String(i.forma||'').replace(/^(Cartão (?:Crédito|Débito) - )(.*)$/,(m,a,b)=>b===antigo?a+o.nome:m)}));
             save();$('#dlgCartao').close();refresh();log(`Editou cartão: ${o.nome} (${o.banco})`);toast('Cartão atualizado.');return;
         }
@@ -1021,9 +1056,9 @@
         $('#menuToggle').onclick=()=>$('#sidebar').classList.toggle('aberta');
         $('#btnMais').onclick=()=>$('#sidebar').classList.toggle('aberta');
         $('#colapsar').onclick=()=>document.body.classList.toggle('menu-recolhido');
-        $('#btnEditSal').onclick=()=>{$('#salBox').hidden=!$('#salBox').hidden;$('#inputSalario').value=db.salarios[db.currentUser]||0};
+        $('#btnEditSal').onclick=()=>{$('#salBox').hidden=!$('#salBox').hidden;$('#inputSalario').value=fmtValor(db.salarios[db.currentUser]||0)};
         $('#btnSalSave').onclick=()=>{
-            const v=parseFloat($('#inputSalario').value);if(!(v>=0)){toast('Informe um valor válido.');return}
+            const v=lerValor('#inputSalario');if(!(v>=0)){toast('Informe um valor válido.');return}
             db.salarios[db.currentUser]=v;save();$('#salBox').hidden=true;renderRenda();log('Atualizou o salário mensal');toast('Salário atualizado.');
         };
         ['#btnInstalarApp','#btnInstalarLogin'].forEach(s=>$(s).onclick=abrirInstalar);
