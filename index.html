@@ -246,6 +246,7 @@
 
         <section id="tab-entradas" class="tab" hidden><div class="tw"><table><thead><tr><th>Descrição</th><th>Forma</th><th>Valor</th><th>Data</th><th class="r">Ações</th></tr></thead><tbody id="bEntradas"></tbody></table></div></section>
         <section id="tab-dividas" class="tab" hidden><div class="tw"><table><thead><tr><th>Título</th><th>Valor</th><th>Término / Vencimento</th><th>Status / Pagamento</th><th class="r">Ações</th></tr></thead><tbody id="bDividas"></tbody></table></div></section>
+        <section id="tab-contas" class="tab" hidden><div class="tw"><table><thead><tr><th>Conta</th><th>Valor</th><th>Vencimento</th><th>Status / Pagamento</th><th class="r">Ações</th></tr></thead><tbody id="bContas"></tbody></table></div></section>
         <section id="tab-gastos" class="tab" hidden><div class="tw"><table><thead><tr><th>Descrição</th><th>Categoria</th><th>Forma</th><th>Valor</th><th>Data</th><th class="r">Ações</th></tr></thead><tbody id="bGastos"></tbody></table></div></section>
         <section id="tab-cartoes" class="tab" hidden><div class="cards" id="gCartoes"></div></section>
         <section id="tab-auditoria" class="tab" hidden><div class="tw"><table><thead><tr><th>Data</th><th>Hora</th><th>Usuário</th><th>Ação realizada</th></tr></thead><tbody id="bAudit"></tbody></table></div></section>
@@ -308,6 +309,14 @@
     <div class="prev" id="divPrev" hidden></div>
     <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="divSalvarBtn">Salvar</button></div></form></dialog>
 
+<dialog id="dlgConta"><form id="fConta"><h3 id="contaTituloDlg">Adicionar conta fixa</h3>
+    <label>Tipo de conta<select id="contaTipo"><option>IPVA</option><option>IPTU</option><option>Consórcio</option><option>Conta de Água</option><option>Conta de Luz</option><option>Outra</option></select></label>
+    <label><span id="contaDescLbl">Descrição (opcional)</span><input id="contaDesc" maxlength="80" placeholder="Ex: IPVA do carro, parcela 3/5"></label>
+    <label>Forma de pagamento<select id="contaForma"><option>Boleto Bancário</option><option>Pix</option><option>Débito Automático</option><option>Código de Barras</option><option>Dinheiro Físico</option><option>Transferência</option><option>Cartão</option></select></label>
+    <label>Valor (R$)<input type="number" step="0.01" min="0.01" id="contaValor" required></label>
+    <label>Vencimento<input type="date" id="contaVenc" required></label>
+    <div class="dact"><button type="button" class="btn lt" data-close>Cancelar</button><button class="btn prim" id="contaSalvarBtn">Salvar</button></div></form></dialog>
+
 <dialog id="dlgGasto"><form id="fGasto"><h3 id="gastoTituloDlg">Registrar gasto</h3>
     <label>Descrição<input id="gastoDesc" required></label>
     <label>Categoria<select id="gastoCat"><option>Alimentação</option><option>Saúde</option><option>Lazer</option><option>Transporte</option><option>Outros</option></select></label>
@@ -354,6 +363,7 @@
         renda:'<path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
         entradas:'<path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>',
         dividas:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>',
+        contas:'<path d="M9 7h6m-6 4h6m-6 4h3M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2V3z"/>',
         gastos:'<path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>',
         cartoes:'<path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>',
         auditoria:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>',
@@ -372,7 +382,7 @@
     const ic=(k,cls='ic')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
 
     /* ===== Dados ===== */
-    const CHAVES=['salarios','entradas','dividas','gastos','cartoes','senhas','emails'];
+    const CHAVES=['salarios','entradas','dividas','contas','gastos','cartoes','senhas','emails'];
     const PROIBIDOS=['__proto__','constructor','prototype'];
     function normalizar(d){
         if(!d||typeof d!=='object'||Array.isArray(d))d={};
@@ -386,7 +396,7 @@
         let d={};try{d=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
         return normalizar(d);
     }
-    let db=load(),currentTab='renda',previousTab='renda',divTipo='Produto',divEditId=null,entEditId=null,gastoEditId=null,cartEditId=null;
+    let db=load(),currentTab='renda',previousTab='renda',divTipo='Produto',divEditId=null,entEditId=null,gastoEditId=null,cartEditId=null,contaEditId=null;
     const L=k=>db[k][db.currentUser]||[];
     function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('Não foi possível salvar os dados neste navegador.')}}
     function toast(m,ms=3000){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),ms)}
@@ -406,6 +416,7 @@
         renda:{t:'Renda Mensal',s:'Resumo do seu orçamento',ex:1,nav:'Renda'},
         entradas:{t:'Entradas de Dinheiro',s:'Tudo o que entrou',ex:1,nav:'Entradas',add:['+ Nova Entrada','dlgEntrada']},
         dividas:{t:'Dívidas Fixas',s:'Contas e parcelas a pagar',ex:1,nav:'Dívidas fixas',add:['+ Adicionar Dívida','dlgDivida']},
+        contas:{t:'Contas Fixas',s:'IPVA, IPTU, consórcio, água, luz e outras',ex:1,nav:'Contas fixas',add:['+ Adicionar Conta','dlgConta']},
         gastos:{t:'Gastos',s:'Despesas do dia a dia',ex:1,nav:'Gastos',add:['+ Registrar Gasto','dlgGasto']},
         cartoes:{t:'Cartões',s:'Seus cartões cadastrados',ex:1,nav:'Cartões',add:['+ Adicionar Cartão','dlgCartao']},
         auditoria:{t:'Auditoria do Sistema',s:'Histórico das ações realizadas',ex:1,solo:1,nav:'Auditoria'},
@@ -421,7 +432,7 @@
     <div class="div"></div>
     <button class="nbtn" id="btnInstalarApp" hidden title="Instalar no celular">${ic('instalar')}<span class="tx">Instalar no celular</span></button>
 `;
-        $('#bnav').innerHTML=['renda','entradas','dividas','gastos','cartoes'].map(k=>`<button class="bi" data-tab="${k}">${ic(k)}<span>${TABS[k].nav.replace('Dívidas fixas','Dívidas')}</span></button>`).join('')+`<button class="bi" id="btnMais">${ic('mais')}<span>Mais</span></button>`;
+        $('#bnav').innerHTML=['renda','entradas','dividas','contas','gastos','cartoes'].map(k=>`<button class="bi" data-tab="${k}">${ic(k)}<span>${TABS[k].nav.replace(/ fixas$/,'')}</span></button>`).join('')+`<button class="bi" id="btnMais">${ic('mais')}<span>Mais</span></button>`;
         $('#btnNovoUsuarioLogin').innerHTML=ic('mais2','ic')+' Adicionar novo usuário';
         $('#btnRestaurarLogin').innerHTML=ic('restaurar')+' Restaurar backup';
         $('#btnInstalarLogin').innerHTML=ic('instalar')+' Instalar aplicativo no celular';
@@ -532,7 +543,7 @@
     };
     function loginUser(u){
         db.currentUser=u;
-        ['entradas','dividas','gastos','cartoes'].forEach(k=>{if(!Array.isArray(db[k][u]))db[k][u]=[]});
+        ['entradas','dividas','contas','gastos','cartoes'].forEach(k=>{if(!Array.isArray(db[k][u]))db[k][u]=[]});
         if(typeof db.salarios[u]!=='number')db.salarios[u]=0;
         document.body.classList.add('auth');
         $('#userNameDisplay').textContent=u;$('#userInitial').textContent=u.charAt(0).toUpperCase();
@@ -551,7 +562,7 @@
         if(!await confirmar('Apagar usuário',`Deseja realmente apagar o usuário "${u}" e todos os seus dados? Isso não pode ser desfeito.`))return;
         const eraEle=db.currentUser===u;if(!eraEle)log(`Apagou o usuário ${u}`);
         db.usuarios=db.usuarios.filter(x=>x!==u);
-        ['salarios','entradas','dividas','gastos','cartoes','senhas','emails'].forEach(k=>delete db[k][u]);
+        CHAVES.forEach(k=>delete db[k][u]);
         save();toast(`Usuário "${u}" apagado.`);
         if(eraEle)logout();else{renderApagar();renderLogin()}
     }
@@ -588,11 +599,11 @@
     }
 
     /* ===== Renderização ===== */
-    function refresh(){renderRenda();renderEntradas();renderDividas();renderGastos();renderCartoes();renderAuditoria();checkVencimentos()}
+    function refresh(){renderRenda();renderEntradas();renderDividas();renderContas();renderGastos();renderCartoes();renderAuditoria();checkVencimentos()}
     function renderRenda(){
-        const s=db.salarios[db.currentUser]||0,e=soma(L('entradas')),d=soma(L('dividas')),g=soma(L('gastos')),saldo=s+e-d-g;
+        const s=db.salarios[db.currentUser]||0,e=soma(L('entradas')),d=soma(L('dividas')),c=soma(L('contas')),g=soma(L('gastos')),saldo=s+e-d-c-g;
         $('#salarioDisplay').textContent=BRL(s);
-        $('#kpis').innerHTML=[['Total de entradas',e,'g'],['Total de dívidas fixas',d,'r'],['Total de gastos',g,'a'],['Saldo estimado',saldo,saldo<0?'r':'g']]
+        $('#kpis').innerHTML=[['Total de entradas',e,'g'],['Total de dívidas fixas',d,'r'],['Total de contas fixas',c,'r'],['Total de gastos',g,'a'],['Saldo estimado',saldo,saldo<0?'r':'g']]
             .map(([t,v,c])=>`<div class="kpi ${c}"><span class="lbl">${t}</span><b>${BRL(v)}</b></div>`).join('');
     }
     const delBtn=(k,id)=>`<button class="ib" data-del="${k}" data-id="${id}" title="Remover" aria-label="Remover">${ic('lixo','ic" style="width:17px;height:17px')}</button>`;
@@ -601,7 +612,7 @@
         const a=L('entradas');
         $('#bEntradas').innerHTML=a.length?a.map(i=>`<tr><td><b>${esc(i.desc)}</b></td><td>${esc(i.forma)}</td><td style="color:var(--g);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(i.data)}</td><td class="r">${edBtn('entradas',i.id)}${delBtn('entradas',i.id)}</td></tr>`).join(''):vazioRow(5,'Nenhuma entrada cadastrada.');
     }
-    const NOMES_ED={dividas:'dívida',entradas:'entrada',gastos:'gasto',cartoes:'cartão'};
+    const NOMES_ED={dividas:'dívida',contas:'conta',entradas:'entrada',gastos:'gasto',cartoes:'cartão'};
     const edBtn=(k,id)=>`<button class="ib ed" data-edit="${k}" data-id="${id}" title="Editar ${NOMES_ED[k]}" aria-label="Editar ${NOMES_ED[k]}">${ic('editar','ic" style="width:17px;height:17px')}</button>`;
     const atrasada=d=>{const v=d.vencimento||d.data;return !d.pago&&v&&new Date(v+'T23:59:59')<new Date()};
     function renderDividas(){
@@ -612,6 +623,17 @@
                 :`<div class="row" style="gap:8px">${at?'<span class="tag at">Dívida pendente</span>':''}<button class="btn prim sm" data-pago="${i.id}" style="background:var(--g);border-color:var(--g)">Marcar pago</button></div>`;
             const info=[i.tipo,i.forma,i.parcelado==='Sim'?`${i.vezes}x`:''].filter(Boolean).map(esc).join(' • ');
             return `<tr class="${at?'atr':''}"><td><b>${esc(i.titulo)}</b><small>${info}</small></td><td style="color:var(--r);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(v)}</td><td>${st}</td><td class="r">${edBtn('dividas',i.id)}${delBtn('dividas',i.id)}</td></tr>`}).join(''):vazioRow(5,'Nenhuma dívida fixa cadastrada.');
+    }
+    /* Contas fixas: "Outra" usa o nome digitado; as demais usam o tipo (+ descrição opcional) */
+    const tituloConta=c=>c.tipo==='Outra'?(c.desc||'Conta'):(c.desc?`${c.tipo} - ${c.desc}`:c.tipo);
+    function renderContas(){
+        const a=[...L('contas')].sort((x,y)=>(!!x.pago-!!y.pago)||String(x.vencimento||'').localeCompare(String(y.vencimento||'')));
+        $('#bContas').innerHTML=a.length?a.map(i=>{
+            const at=atrasada(i);
+            const st=i.pago?`<span class="tag ok">Pago</span><button class="lk" data-pagoconta="${i.id}">Desfazer</button>`
+                :`<div class="row" style="gap:8px">${at?'<span class="tag at">Conta vencida</span>':''}<button class="btn prim sm" data-pagoconta="${i.id}" style="background:var(--g);border-color:var(--g)">Marcar pago</button></div>`;
+            const nome=i.tipo==='Outra'?i.desc:i.tipo,info=[i.tipo!=='Outra'?i.desc:'',i.forma].filter(Boolean).map(esc).join(' • ');
+            return `<tr class="${at?'atr':''}"><td><b>${esc(nome)}</b><small>${info}</small></td><td style="color:var(--r);font-weight:700">${BRL(i.valor)}</td><td>${fmtData(i.vencimento)}</td><td>${st}</td><td class="r">${edBtn('contas',i.id)}${delBtn('contas',i.id)}</td></tr>`}).join(''):vazioRow(5,'Nenhuma conta fixa cadastrada.');
     }
     function renderGastos(){
         const a=L('gastos');
@@ -639,6 +661,11 @@
             const v=d.vencimento||d.data;if(d.pago||!v)return;const fim=new Date(v+'T23:59:59');
             if(fim<now)itens.push(`<div class="nt at"><b>Dívida pendente:</b> <i>${esc(d.titulo)}</i> venceu em ${fmtData(v)}.</div>`);
             else if((fim-now)/864e5<=3){itens.push(`<div class="nt"><b>Atenção:</b> a dívida <i>${esc(d.titulo)}</i> vence em ${fmtData(v)}.</div>`);notificar('Alerta de vencimento',`A dívida "${d.titulo}" vence em ${fmtData(v)}.`)}
+        });
+        L('contas').forEach(c=>{
+            const v=c.vencimento;if(c.pago||!v)return;const fim=new Date(v+'T23:59:59'),n=tituloConta(c);
+            if(fim<now)itens.push(`<div class="nt at"><b>Conta vencida:</b> <i>${esc(n)}</i> venceu em ${fmtData(v)}.</div>`);
+            else if((fim-now)/864e5<=3){itens.push(`<div class="nt"><b>Atenção:</b> a conta <i>${esc(n)}</i> vence em ${fmtData(v)}.</div>`);notificar('Alerta de vencimento',`A conta "${n}" vence em ${fmtData(v)}.`)}
         });
         $('#notifList').innerHTML=itens.join('')||'<p style="text-align:center;color:var(--m500);font-size:.78rem;padding:8px">Nenhuma notificação no momento.</p>';
         const b=$('#badge');b.textContent=itens.length;b.hidden=!itens.length;
@@ -681,6 +708,7 @@
         if(id==='dlgEntrada'){entEditId=null;$('#entTituloDlg').textContent='Nova entrada de dinheiro';$('#entSalvarBtn').textContent='Salvar';$('#entData').value=hoje()}
         if(id==='dlgDivida'){divEditId=null;$('#divTituloDlg').textContent='Adicionar dívida fixa';$('#divSalvarBtn').textContent='Salvar';$('#divData').value=hoje();setTipo('Produto');cartaoOpts();ajusta('div')}
         if(id==='dlgGasto'){gastoEditId=null;$('#gastoTituloDlg').textContent='Registrar gasto';$('#gastoSalvarBtn').textContent='Salvar';$('#gastoData').value=hoje();cartaoOpts();ajusta('gasto')}
+        if(id==='dlgConta'){contaEditId=null;$('#contaTituloDlg').textContent='Adicionar conta fixa';$('#contaSalvarBtn').textContent='Salvar';$('#contaVenc').value=hoje();ajustaConta()}
         if(id==='dlgCartao'){cartEditId=null;$('#cartTituloDlg').textContent='Adicionar cartão';$('#cartSalvarBtn').textContent='Salvar';ajustaBanco();ajustaTipoCartao()}
         d.showModal();
     }
@@ -729,7 +757,20 @@
         if(/^#[0-9a-f]{6}$/i.test(c.cor||''))$('#cartaoCor').value=c.cor;
         ajustaBanco();ajustaTipoCartao();
     }
-    function editar(k,id){({dividas:editarDivida,entradas:editarEntrada,gastos:editarGasto,cartoes:editarCartao}[k]||(()=>{}))(id)}
+    function ajustaConta(){
+        const o=$('#contaTipo').value==='Outra',d=$('#contaDesc');
+        $('#contaDescLbl').textContent=o?'Nome da conta':'Descrição (opcional)';d.required=o;
+        d.placeholder=o?'Ex: Internet, condomínio, seguro do carro':'Ex: IPVA do carro, parcela 3 de 5';
+    }
+    function editarConta(id){
+        const c=L('contas').find(i=>String(i.id)===String(id));if(!c)return;
+        abrir('dlgConta');
+        contaEditId=String(c.id);$('#contaTituloDlg').textContent='Editar conta fixa';$('#contaSalvarBtn').textContent='Salvar alterações';
+        $('#contaTipo').value=c.tipo;if(!$('#contaTipo').value)$('#contaTipo').value='Outra';
+        $('#contaDesc').value=c.desc||'';$('#contaForma').value=c.forma;if(!$('#contaForma').value)$('#contaForma').selectedIndex=0;
+        $('#contaValor').value=c.valor;$('#contaVenc').value=c.vencimento||hoje();ajustaConta();
+    }
+    function editar(k,id){({dividas:editarDivida,contas:editarConta,entradas:editarEntrada,gastos:editarGasto,cartoes:editarCartao}[k]||(()=>{}))(id)}
 
     /* ===== Cores dos cartões ===== */
     const BANCOS=[
@@ -778,6 +819,7 @@
     document.addEventListener('change',e=>{
         if(e.target.id==='cartaoBanco')ajustaBanco();
         if(e.target.id==='cartaoTipo')ajustaTipoCartao();
+        if(e.target.id==='contaTipo')ajustaConta();
     });
     document.addEventListener('input',e=>{if(e.target.id==='cartaoCor')ajustaBanco()});
     $('#pgDiv').innerHTML=pagto('div');$('#pgGasto').innerHTML=pagto('gasto');
@@ -819,6 +861,16 @@
         if(ed){const antes=ed.valor;Object.assign(ed,o);save();$('#dlgGasto').close();refresh();log(`Editou gasto: ${o.desc} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Gasto atualizado.');return}
         L('gastos').push(o);save();$('#dlgGasto').close();refresh();log(`Registrou gasto: ${o.desc} (${BRL(o.valor)})`);toast('Gasto registrado.');
     };
+    $('#fConta').onsubmit=e=>{
+        e.preventDefault();
+        const ed=contaEditId!==null?L('contas').find(x=>String(x.id)===contaEditId):null;
+        const o={id:ed?ed.id:Date.now(),tipo:$('#contaTipo').value,desc:$('#contaDesc').value.trim(),forma:$('#contaForma').value,valor:parseFloat($('#contaValor').value),vencimento:$('#contaVenc').value,pago:ed?!!ed.pago:false};
+        if(o.tipo==='Outra'&&!o.desc){toast('Escreva o nome da conta.');return}
+        if(!(o.valor>0)||!o.vencimento){toast('Informe um valor maior que zero e o vencimento.');return}
+        const n=tituloConta(o);
+        if(ed){const antes=ed.valor;Object.assign(ed,o);save();$('#dlgConta').close();refresh();log(`Editou conta fixa: ${n} (${antes!==o.valor?BRL(antes)+' → ':''}${BRL(o.valor)})`);toast('Conta atualizada.');return}
+        L('contas').push(o);save();$('#dlgConta').close();refresh();log(`Adicionou conta fixa: ${n} (${BRL(o.valor)})`);toast('Conta salva.');
+    };
     $('#fCartao').onsubmit=e=>{
         e.preventDefault();
         const sel=$('#cartaoBanco').value,banco=sel==='Outro'?$('#cartaoBancoOutro').value.trim():sel;
@@ -842,6 +894,7 @@
             renda:{n:'Renda',c:['Métrica','Valor'],r:[['Salário mensal',db.salarios[u]||0]]},
             entradas:{n:'Entradas',c:['Descrição','Forma','Valor','Data'],r:L('entradas').map(i=>[i.desc,i.forma,i.valor,fmtData(i.data)])},
             dividas:{n:'Dívidas Fixas',c:['Título','Tipo','Forma','Valor','Vencimento','Pago'],r:L('dividas').map(i=>[i.titulo,i.tipo,i.forma,i.valor,fmtData(i.vencimento||i.data),i.pago?'Sim':'Não'])},
+            contas:{n:'Contas Fixas',c:['Conta','Descrição','Forma','Valor','Vencimento','Pago'],r:L('contas').map(i=>[i.tipo,i.desc||'',i.forma,i.valor,fmtData(i.vencimento),i.pago?'Sim':'Não'])},
             gastos:{n:'Gastos',c:['Descrição','Categoria','Forma','Valor','Data'],r:L('gastos').map(i=>[i.desc,i.categoria,i.forma,i.valor,fmtData(i.data)])},
             cartoes:{n:'Cartões',c:['Nome','Banco','Tipo','Final','Limite'],r:L('cartoes').map(i=>[i.nome,i.banco,i.tipo,i.final,i.limite])},
             auditoria:{n:'Auditoria',c:['Data','Hora','Usuário','Ação'],r:db.auditoria.map(i=>[i.data,i.hora,i.usuario,i.acao])}
@@ -850,7 +903,7 @@
     const MONEY=['Valor','Limite'];
     const nomeArq=()=>db.currentUser.replace(/[^\wÀ-ú-]+/g,'_');
     function exportar(tipo,alvo){
-        const ds=datasets(),geral=alvo==='geral',chaves=geral?['renda','entradas','dividas','gastos','cartoes']:[alvo];
+        const ds=datasets(),geral=alvo==='geral',chaves=geral?['renda','entradas','dividas','contas','gastos','cartoes']:[alvo];
         if(!geral&&!ds[alvo].r.length){toast('Não há dados para exportar nesta página.');return}
         const base=geral?`relatorio_geral_${nomeArq()}`:`relatorio_${alvo}_${nomeArq()}`;
         if(tipo==='xls'){
@@ -937,11 +990,13 @@
         const tp=t.closest('[data-tp]');if(tp){setTipo(tp.dataset.tp);return}
         const ex=t.closest('[data-exp]');if(ex){exportar(ex.dataset.exp,ex.dataset.geral?'geral':currentTab);$$('.menu').forEach(m=>m.hidden=true);return}
         const ed=t.closest('[data-edit]');if(ed){editar(ed.dataset.edit,ed.dataset.id);return}
+        const pc=t.closest('[data-pagoconta]');
+        if(pc){const c=L('contas').find(x=>String(x.id)===pc.dataset.pagoconta);if(c){c.pago=!c.pago;save();refresh();log(`Alterou status da conta "${tituloConta(c)}" para ${c.pago?'Pago':'Pendente'}`)}return}
         const pg=t.closest('[data-pago]');
         if(pg){const d=L('dividas').find(x=>String(x.id)===pg.dataset.pago);if(d){d.pago=!d.pago;save();refresh();log(`Alterou status da dívida "${d.titulo}" para ${d.pago?'Pago':'Pendente'}`)}return}
         const dl=t.closest('[data-del]');
         if(dl){
-            const k=dl.dataset.del,nomes={entradas:'entrada',dividas:'dívida',gastos:'gasto',cartoes:'cartão'};
+            const k=dl.dataset.del,nomes={entradas:'entrada',dividas:'dívida',contas:'conta',gastos:'gasto',cartoes:'cartão'};
             if(!await confirmar('Remover '+nomes[k],`Deseja realmente remover ${k==='cartoes'?'este':'esta'} ${nomes[k]}?`))return;
             db[k][db.currentUser]=L(k).filter(i=>String(i.id)!==dl.dataset.id);save();refresh();log(`Removeu ${k==='cartoes'?'um':'uma'} ${nomes[k]}`);toast('Removido.');return;
         }
